@@ -10,6 +10,7 @@ import {
   ProfilingResult,
   LearnerProfile
 } from '../../lib/prompts'
+import { callLLM } from '../../lib/llm'
 
 interface Message {
   role: 'user' | 'assistant' | 'system'
@@ -35,11 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       onboardingResult?: OnboardingResult
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) {
-      return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' })
-    }
-
     // Determine current phase
     let phase = clientPhase || 'onboarding'
     let onboardingResult = clientOnboardingResult
@@ -50,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Build the full messages array with system prompt
     const fullMessages = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system' as const, content: systemPrompt },
       ...clientMessages
     ]
 
@@ -63,34 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!hasTransition && onboardingResult) {
         // Insert transition message before the last user message
         fullMessages.splice(fullMessages.length - 1, 0, {
-          role: 'user',
+          role: 'user' as const,
           content: "[SYSTEM: Onboarding phase complete. You now know what they want to learn and why. Continue the conversation naturally to figure out their current level and how deep the course should go. Don't start with a new greeting - just continue the flow.]"
         })
       }
     }
 
-    // Call OpenRouter API
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
-        messages: fullMessages,
-        tools: tools,
-        tool_choice: "auto",
-      }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('OpenRouter error:', errorText)
-      return res.status(500).json({ error: 'OpenRouter API error' })
-    }
-
-    const data = await response.json()
+    // Call LLM provider
+    const data = await callLLM({ messages: fullMessages, tools })
     const choice = data.choices?.[0]
     const message = choice?.message
 

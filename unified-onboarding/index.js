@@ -2,6 +2,7 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { callLLM } from '../lib/llm.js';
 
 // Load .env from project root
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
@@ -283,41 +284,12 @@ function getUserInput(prompt) {
 // ═══════════════════════════════════════════
 
 async function callGemini() {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey || apiKey === 'your_api_key_here') {
-        console.error('\n❌ Error: OPENROUTER_API_KEY not set in .env file');
-        console.error('Please add your OpenRouter API key to the .env file\n');
-        process.exit(1);
-    }
-
-    // Use the appropriate tools based on current phase
     const tools = currentPhase === 'onboarding' ? onboardingTools : profilingTools;
 
     try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
-                messages: messages,
-                tools: tools,
-                tool_choice: "auto",
-            }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API request failed: ${response.status} ${response.statusText}\n${errorText}`);
-        }
-
-        const data = await response.json();
-        return data;
+        return await callLLM({ messages, tools });
     } catch (error) {
-        console.error('\n❌ Error calling OpenRouter API:', error.message);
+        console.error('\n❌ Error calling LLM:', error.message);
         process.exit(1);
     }
 }
