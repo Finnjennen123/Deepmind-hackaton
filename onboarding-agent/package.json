@@ -1,0 +1,13 @@
+{
+  "name": "onboarding-agent",
+  "version": "1.0.0",
+  "description": "AI mentoring platform onboarding agent - Phase 1",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1"
+  }
+}
