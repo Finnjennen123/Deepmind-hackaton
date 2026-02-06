@@ -1,0 +1,13 @@
+{
+    "name": "unified-onboarding",
+    "version": "1.0.0",
+    "description": "Unified onboarding flow - one continuous conversation that transitions through phases",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "dotenv": "^16.3.1"
+    }
+}

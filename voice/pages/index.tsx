@@ -6,6 +6,12 @@ interface Message {
   content: string
 }
 
+interface OnboardingResult {
+  subject: string
+  reason: string
+  summary: string
+}
+
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -16,6 +22,11 @@ export default function Home() {
   const [isMuted, setIsMuted] = useState(false)
   const [orbScale, setOrbScale] = useState(1)
   const [status, setStatus] = useState('Tap the orb to start')
+
+  // Onboarding state
+  const [phase, setPhase] = useState<'onboarding' | 'profiling' | 'complete'>('onboarding')
+  const [onboardingResult, setOnboardingResult] = useState<OnboardingResult | null>(null)
+  const [isComplete, setIsComplete] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const micStreamRef = useRef<MediaStream | null>(null)
@@ -33,17 +44,23 @@ export default function Home() {
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const sendQueueRef = useRef<string[]>([])
   const isSendingRef = useRef(false)
-  const sendMessageRef = useRef<(content: string) => void>(() => {})
+  const sendMessageRef = useRef<(content: string) => void>(() => { })
   const ttsAbortRef = useRef<AbortController | null>(null)
 
   const micAnalyserRef = useRef<AnalyserNode | null>(null)
   const speakAnalyserRef = useRef<AnalyserNode | null>(null)
   const animFrameRef = useRef<number>(0)
 
+  // Refs for phase state
+  const phaseRef = useRef<'onboarding' | 'profiling' | 'complete'>('onboarding')
+  const onboardingResultRef = useRef<OnboardingResult | null>(null)
+
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { isListeningRef.current = isListening }, [isListening])
   useEffect(() => { isSpeakingRef.current = isSpeaking }, [isSpeaking])
   useEffect(() => { isMutedRef.current = isMuted }, [isMuted])
+  useEffect(() => { phaseRef.current = phase }, [phase])
+  useEffect(() => { onboardingResultRef.current = onboardingResult }, [onboardingResult])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -86,11 +103,11 @@ export default function Home() {
     nextPlayTimeRef.current = 0
     // Abort any in-flight TTS fetches
     if (ttsAbortRef.current) {
-      try { ttsAbortRef.current.abort() } catch (_) {}
+      try { ttsAbortRef.current.abort() } catch (_) { }
       ttsAbortRef.current = null
     }
     if (currentSourceRef.current) {
-      try { currentSourceRef.current.stop() } catch (_) {}
+      try { currentSourceRef.current.stop() } catch (_) { }
       currentSourceRef.current = null
     }
     isPlayingRef.current = false
@@ -268,54 +285,122 @@ export default function Home() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages })
+        body: JSON.stringify({
+          messages: newMessages,
+          phase: phaseRef.current,
+          onboardingResult: onboardingResultRef.current
+        })
       })
       console.log('[CHAT] Fetch response status:', res.status)
       if (!res.ok) throw new Error(`Chat failed: ${res.status}`)
-      const reader = res.body?.getReader()
-      if (!reader) throw new Error('No reader')
-      const decoder = new TextDecoder()
-      setMessages([...newMessages, { role: 'assistant', content: '' }])
 
-      let full = ''
-      let sentenceBuffer = ''
+      // Check content type to determine response type
+      const contentType = res.headers.get('content-type') || ''
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value)
-        full += chunk
-        sentenceBuffer += chunk
-        setMessages([...newMessages, { role: 'assistant', content: full }])
+      if (contentType.includes('application/json')) {
+        // JSON response - phase transition or completion
+        const data = await res.json()
+        console.log('[CHAT] JSON response:', data.type)
 
-        // Split on sentence-ending punctuation, including voice tags like [giggle]
-        const sentenceMatch = sentenceBuffer.match(/^([\s\S]*?[.!?…](?:\s|\[|$))/);
-        if (sentenceMatch && !shouldStopSpeakingRef.current) {
-          const sentence = sentenceMatch[1].trim()
-          sentenceBuffer = sentenceBuffer.slice(sentenceMatch[0].length)
-          if (sentence) {
-            console.log('[CHAT] Queueing sentence:', sentence.slice(0, 60))
-            queueTtsSentence(sentence, abort.signal)
+        if (data.type === 'phase_transition') {
+          // Transition to profiling phase
+          setPhase(data.newPhase)
+          setOnboardingResult(data.onboardingResult)
+          console.log('[CHAT] Transitioning to profiling phase')
+
+          // Immediately continue the conversation
+          if (data.continueConversation) {
+            // Make another call to get the first profiling question
+            const continuedRes = await fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                messages: newMessages,
+                phase: 'profiling',
+                onboardingResult: data.onboardingResult
+              })
+            })
+
+            if (continuedRes.ok) {
+              const contType = continuedRes.headers.get('content-type') || ''
+              if (contType.includes('text/plain')) {
+                // Stream the response
+                await streamTextResponse(continuedRes, newMessages, abort)
+              }
+            }
           }
+        } else if (data.type === 'complete') {
+          // Onboarding complete!
+          setPhase('complete')
+          setIsComplete(true)
+
+          // Speak the final message
+          const finalMessage = data.text
+          setMessages([...newMessages, { role: 'assistant', content: finalMessage }])
+          queueTtsSentence(finalMessage, abort.signal)
+
+          console.log('[CHAT] Onboarding complete! Profile saved.')
         }
+      } else {
+        // Text response - stream it
+        await streamTextResponse(res, newMessages, abort)
       }
-
-      // Flush remaining text
-      if (sentenceBuffer.trim() && !shouldStopSpeakingRef.current) {
-        console.log('[CHAT] Queueing remainder:', sentenceBuffer.trim().slice(0, 60))
-        queueTtsSentence(sentenceBuffer.trim(), abort.signal)
-      }
-
-      console.log('[CHAT] Stream done, full length:', full.length)
-      setMessages([...newMessages, { role: 'assistant', content: full }])
     } catch (e) {
       console.error('[CHAT] Error:', e)
       setStatus('Error occurred')
     } finally {
       setIsProcessing(false)
-      setStatus(isListeningRef.current ? 'Listening...' : 'Tap the orb to start')
+      if (isComplete) {
+        setStatus('Onboarding complete!')
+      } else {
+        setStatus(isListeningRef.current ? 'Listening...' : 'Tap the orb to start')
+      }
     }
-  }, [stopSpeaking, queueTtsSentence])
+  }, [stopSpeaking, queueTtsSentence, isComplete])
+
+  // Helper to stream text response
+  const streamTextResponse = useCallback(async (
+    res: Response,
+    newMessages: Message[],
+    abort: AbortController
+  ) => {
+    const reader = res.body?.getReader()
+    if (!reader) throw new Error('No reader')
+    const decoder = new TextDecoder()
+    setMessages([...newMessages, { role: 'assistant', content: '' }])
+
+    let full = ''
+    let sentenceBuffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const chunk = decoder.decode(value)
+      full += chunk
+      sentenceBuffer += chunk
+      setMessages([...newMessages, { role: 'assistant', content: full }])
+
+      // Split on sentence-ending punctuation, including voice tags like [giggle]
+      const sentenceMatch = sentenceBuffer.match(/^([\s\S]*?[.!?…](?:\s|\[|$))/);
+      if (sentenceMatch && !shouldStopSpeakingRef.current) {
+        const sentence = sentenceMatch[1].trim()
+        sentenceBuffer = sentenceBuffer.slice(sentenceMatch[0].length)
+        if (sentence) {
+          console.log('[CHAT] Queueing sentence:', sentence.slice(0, 60))
+          queueTtsSentence(sentence, abort.signal)
+        }
+      }
+    }
+
+    // Flush remaining text
+    if (sentenceBuffer.trim() && !shouldStopSpeakingRef.current) {
+      console.log('[CHAT] Queueing remainder:', sentenceBuffer.trim().slice(0, 60))
+      queueTtsSentence(sentenceBuffer.trim(), abort.signal)
+    }
+
+    console.log('[CHAT] Stream done, full length:', full.length)
+    setMessages([...newMessages, { role: 'assistant', content: full }])
+  }, [queueTtsSentence])
 
   const drainSendQueue = useCallback(async () => {
     if (isSendingRef.current) { console.log('[QUEUE] Already sending, skipping drain'); return }
@@ -330,10 +415,11 @@ export default function Home() {
 
   const sendMessage = useCallback((content: string) => {
     if (!content.trim()) return
+    if (isComplete) return // Don't send messages after completion
     console.log('[MSG] sendMessage called:', content.slice(0, 60))
     sendQueueRef.current.push(content)
     drainSendQueue()
-  }, [drainSendQueue])
+  }, [drainSendQueue, isComplete])
 
   useEffect(() => { sendMessageRef.current = sendMessage }, [sendMessage])
 
@@ -426,7 +512,7 @@ export default function Home() {
         setIsListening(false)
         micAnalyserRef.current = null
         if (mediaRecorderRef.current) {
-          try { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()) } catch (_) {}
+          try { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()) } catch (_) { }
         }
       }
     } catch (e) {
@@ -438,7 +524,7 @@ export default function Home() {
   const stopListening = useCallback(() => {
     if (socketRef.current) { socketRef.current.close(); socketRef.current = null }
     if (mediaRecorderRef.current) {
-      try { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()) } catch (_) {}
+      try { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()) } catch (_) { }
       mediaRecorderRef.current = null
     }
     if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null }
@@ -460,6 +546,9 @@ export default function Home() {
   const handleReset = useCallback(() => {
     stopListening(); stopSpeaking()
     setMessages([]); setCurrentInput(''); setSidebarOpen(false)
+    setPhase('onboarding')
+    setOnboardingResult(null)
+    setIsComplete(false)
     setStatus('Tap the orb to start')
   }, [stopListening, stopSpeaking])
 
@@ -471,6 +560,7 @@ export default function Home() {
   }, [isMuted, isListening])
 
   const getOrbState = () => {
+    if (isComplete) return 'complete'
     if (isProcessing) return 'processing'
     if (isSpeaking) return 'speaking'
     if (isListening) return 'listening'
@@ -479,14 +569,16 @@ export default function Home() {
 
   const orbStyle = {
     transform: `scale(${orbScale})`,
-    boxShadow: `0 0 ${40 + (orbScale - 1) * 200}px rgba(255, 107, 0, ${0.3 + (orbScale - 1) * 1.5})`,
+    boxShadow: isComplete
+      ? `0 0 ${40 + (orbScale - 1) * 200}px rgba(0, 200, 100, ${0.3 + (orbScale - 1) * 1.5})`
+      : `0 0 ${40 + (orbScale - 1) * 200}px rgba(255, 107, 0, ${0.3 + (orbScale - 1) * 1.5})`,
   }
 
   return (
     <>
       <Head>
-        <title>Voice Orb</title>
-        <meta name="description" content="AI Voice Assistant" />
+        <title>Voice Onboarding</title>
+        <meta name="description" content="AI Voice Onboarding Assistant" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
       </Head>
 
@@ -495,17 +587,20 @@ export default function Home() {
           <div>
             <div className={`orb ${getOrbState()}`} style={orbStyle} onClick={handleOrbClick} />
             <p className="status">{status}</p>
+            {isComplete && (
+              <p className="complete-message">Your personalized course is being created!</p>
+            )}
             <button className={`mute-btn ${isMuted ? 'active' : ''}`} onClick={handleMuteToggle} title={isMuted ? 'Unmute mic' : 'Mute mic'}>
-                {isMuted ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="1" y1="1" x2="23" y2="23" /><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" /><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.13 1.49-.35 2.17" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
-                )}
-              </button>
+              {isMuted ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="1" y1="1" x2="23" y2="23" /><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" /><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.13 1.49-.35 2.17" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
@@ -524,7 +619,7 @@ export default function Home() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
-            <h2>Transcript</h2>
+            <h2>Onboarding</h2>
             <button className="reset-btn" onClick={handleReset}>Reset</button>
           </div>
 
@@ -547,6 +642,18 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .complete-message {
+          color: #00c864;
+          font-size: 14px;
+          margin-top: 8px;
+          text-align: center;
+        }
+        .orb.complete {
+          background: linear-gradient(135deg, #00c864, #00a855);
+        }
+      `}</style>
     </>
   )
 }
