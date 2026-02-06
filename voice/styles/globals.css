@@ -86,6 +86,27 @@ body {
   color: #ff6b00;
 }
 
+.sign-out-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 25;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.sign-out-btn:hover {
+  color: #1a1a1a;
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 .toggle-btn {
   position: fixed;
   top: 20px;
