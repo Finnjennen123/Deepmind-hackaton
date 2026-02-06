@@ -1,0 +1,107 @@
+{
+  "brain": {
+    "high_level": {
+      "onboarding": {
+        "subject": "History of the Roman Empire",
+        "why": "To apply knowledge of the rise and fall to modern geopolitics",
+        "summary": "Wants to learn about the history of the Roman Empire, from its rise to its collapse, in order to apply those lessons to current geopolitics."
+      },
+      "profiling": {
+        "starting_level": "knows basics - skip fundamentals",
+        "depth": "solid working knowledge",
+        "focus_areas": "political history and its relevance to modern geopolitics",
+        "skip_areas": "Military history",
+        "notes": "Learner wants to apply Roman history to modern geopolitics."
+      },
+      "generated_at": "2026-02-06T21:06:18.047Z"
+    },
+    "course_structure": {
+      "title": "Pax Romana to Political Collapse: Lessons for Modern Geopolitics",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "The Principate: Centralization and the Illusion of Republic",
+          "description": "Evaluate how Augustus transitioned Rome from a republic to an autocracy while maintaining a façade of democratic institutions.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "The Augustan Settlement: Institutional Hacking",
+              "description": "How Augustus utilized the title 'Princeps' to consolidate absolute power through republican legal frameworks.",
+              "instructional_seed": "Focus on the transition from the Republic to the Principate. Emphasize how Augustus rebranded autocracy as 'restoring the Republic' to prevent elite backlash, and draw parallels to modern 'legalistic autocratization' where democratic institutions are hollowed out from within."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Soft Power and the Pax Romana",
+              "description": "The role of economic integration, infrastructure, and standardized law in maintaining imperial cohesion.",
+              "instructional_seed": "Teach the non-military drivers of Roman hegemony. Focus on the integration of disparate nations through a common legal code and economic infrastructure (roads and currency), and analyze how this mirrors modern globalization and trade blocs."
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Citizenship and Identity as Geopolitical Tools",
+          "description": "Analyze the Roman strategy of universal citizenship and its impacts on state loyalty and social stability.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "The Constitutio Antoniniana: Universal Citizenship",
+              "description": "The granting of citizenship to all freeborn inhabitants in 212 AD and its unintended consequences.",
+              "instructional_seed": "Examine Emperor Caracalla’s decree. Discuss it as a tool for revenue and cultural homogenization versus its role in diluting the unique Roman identity, prompting a discussion on modern immigration, national identity, and social contracts."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Patronage and Bureaucratic Evolution",
+              "description": "The evolution of the Roman civil service and the shift from personal patronage to state bureaucracy.",
+              "instructional_seed": "Detail how the bureaucracy expanded to manage the vast empire, specifically mentioning Hadrian's reforms. Target the tension between merit-based administration and corrupt patronage, framed as a lesson for modern institutional stability."
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "The Crisis of Governance and Administrative Overstretch",
+          "description": "Identify the internal political fractures and economic failures that created systemic instability.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "The Crisis of the Third Century: Political Volatility",
+              "description": "An era of hyper-plurality in leadership and the breakdown of succession norms.",
+              "instructional_seed": "Explore the 50-year period of civil strife and rapid turnover of 'Barracks Emperors.' Focus on the collapse of political legitimacy and the dangers of a leadership vacuum, using the learner's data literacy to connect this to modern 'failed state' indicators."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Diocletian’s Tetrarchy: Federalism vs. Fragmentation",
+              "description": "The attempt to save the empire by splitting administrative control between East and West.",
+              "instructional_seed": "Explain the transition from Principate to Dominate. Analyze Diocletian’s division of power as a precursor to modern administrative decentralization, and evaluate whether it solved systemic issues or merely accelerated the inevitable split."
+            }
+          ]
+        },
+        {
+          "phase_number": 4,
+          "title": "Imperial Sunset: The Mechanics of Collapse",
+          "description": "Deconstruct the multifaceted reasons for the fall of the Western Empire and the survival of the East.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "The Christianization of the State",
+              "description": "The shift from paganism to Christianity as a state-building and unifying political tool.",
+              "instructional_seed": "Cover Constantine's Edict of Milan and Theodosius I's official declaration. Discuss how state-mandated religion changed the social fabric and political allegiance, examining religion as a geopolitical stabilizer or disruptor."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Internal Rot: Corruption and the Alienation of Elites",
+              "description": "How fiscal crisis and the withdrawal of the wealthy from public service led to state atrophy.",
+              "instructional_seed": "Focus on the 'rust and iron' era. Detail how currency debasement and tax burdens led urban elites to abandon the state, contributing to the failure of the Western Empire—paralleling modern concerns of income inequality and tax flight."
+            },
+            {
+              "lesson_number": 3,
+              "title": "The 476 AD Post-Mortem",
+              "description": "The final deposition of Romulus Augustulus and the transition into a multipolar Europe.",
+              "instructional_seed": "Briefly mention the deposition by Odoacer but focus on the 'slow fade' rather than a sudden event. Synthesize the political and geopolitical lessons of the entire course to create a framework for analyzing modern superpower stability."
+            }
+          ]
+        }
+      ]
+    },
+    "low_level": {}
+  }
+}

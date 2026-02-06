@@ -1,0 +1,124 @@
+{
+  "brain": {
+    "high_level": {
+      "onboarding": {
+        "subject": "how to integrate AI tools into my product management workflow",
+        "why": "I'm a PM and I keep seeing other PMs ship faster using AI. I feel like I'm falling behind and want to catch up.",
+        "summary": "PM wants to learn AI integration for faster product shipping"
+      },
+      "profiling": {
+        "current_level": "beginner - has used ChatGPT but no systematic AI tool usage",
+        "vocabulary": "non-technical, business-oriented. Knows PM jargon but not AI/ML terminology",
+        "skip": [
+          "basic explanation of what AI is",
+          "history of AI",
+          "how neural networks work"
+        ],
+        "teach_from_scratch": [
+          "prompt engineering",
+          "AI tool evaluation frameworks",
+          "workflow automation"
+        ],
+        "depth": "practical and applied, not theoretical. Wants to DO things, not understand how models work",
+        "tone": "casual, direct, no hand-holding. Treat them like a smart person who just hasn't learned this yet",
+        "background": "3 years as PM at mid-size SaaS company. Comfortable with data and analytics. Uses Notion, Linear, Figma daily",
+        "gaps": [
+          "doesn't know which AI tools exist beyond ChatGPT",
+          "no framework for evaluating when AI is useful vs overkill",
+          "never built an AI-assisted workflow"
+        ],
+        "strengths": [
+          "strong product thinking",
+          "already data-literate",
+          "high motivation and clear use case"
+        ],
+        "focus_areas": "tool selection, workflow integration, prompt engineering, measuring AI impact on velocity",
+        "learner_context": "Works on a product team that's skeptical of AI. Wants to become the internal expert and champion"
+      },
+      "generated_at": "2026-02-06T21:17:34.116Z"
+    },
+    "course_structure": {
+      "title": "The AI-Accelerated PM: Systematic Workflow Integration",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "AI Logic and Strategic Prompting",
+          "description": "You will be able to construct reliable, context-aware prompts that produce high-quality product artifacts without rework.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Build a Shared Memory: Setting Up Project Context",
+              "description": "Moving beyond one-off chats by using tools like Claude Projects and ChatGPT Custom Instructions for persistent product data.",
+              "instructional_seed": "Teach the learner how to use 'System Context' to define their product's target audience, technical constraints, and brand voice. Focus on setting up a 'Source of Truth' in an AI tool that stays consistent across different product cycles."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Prompt Engineering for PM Artifacts",
+              "description": "Applying structured prompting techniques to generate PRDs, user stories, and acceptance criteria.",
+              "instructional_seed": "Introduce the 'Role-Context-Task-Constraint' framework. Explicitly teach how to prompt for technical user stories and edge-case discovery, ensuring the AI behaves as a senior staff PM partner."
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "Synthesizing Insights and Visualizing Concepts",
+          "description": "You will be able to automate the analysis of user feedback and generate high-fidelity UI prototypes in seconds.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Automate User Feedback Loops",
+              "description": "Using AI and tool integrations to cluster pain points from Slack, Zoom, and customer support tickets.",
+              "instructional_seed": "Leverage the learner's data literacy. Show how tools like tl;dv and QuestionPro can identify sentiment trends and cluster qualitative data into actionable roadmap items without manual spreadsheet entry."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Generate UI Wireframes with AI",
+              "description": "Transforming text descriptions into visual designs using Figma plugins and rapid prototyping tools.",
+              "instructional_seed": "Direct instruction on using WireGen.ai and Fig Flow. Focus on the transition from a written requirement to a visual mockup to speed up stakeholder alignment."
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Workflow Integration and Tool Selection",
+          "description": "You will be able to build an automated stack that connects your roadmap directly to engineering tasks.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "The PM AI Stack: Evaluation Framework",
+              "description": "A systematic way to decide which AI tools to adopt and which to ignore based on your current stack (Notion, Linear, Figma).",
+              "instructional_seed": "Teach the 'Friction vs. ROI' framework for tool selection. Focus on 'Instant Aha!' factor and native integration capability for Jira/Linear to ensure the learner chooses tools their skeptical team will respect."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Connecting the Dots: Linear, Notion, and Slack Automations",
+              "description": "Building automated workflows that keep documentation and tickets in sync using AI-powered triggers.",
+              "instructional_seed": "Teach 'Workflow Automation' from scratch. Focus on using ChatPRD and Product Monkey to sync Figma screens directly to Linear tickets and Notion documentation, eliminating manual copy-pasting."
+            }
+          ]
+        },
+        {
+          "phase_number": 4,
+          "title": "Measuring Impact and Leading Adoption",
+          "description": "You will be able to quantify your velocity gains and advocate for AI adoption within a skeptical organization.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Quantifying Velocity: Measuring AI Impact",
+              "description": "Using data to track how much faster requirements are written and features are shipped.",
+              "instructional_seed": "Focus on business-oriented metrics. Provide a template for tracking 'Time to PRD' and 'Ticket Accuracy' to help the learner build a case for their manager."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Leading Through Skepticism",
+              "description": "Strategies for introducing AI tools to a team that is hesitant or skeptical of the technology.",
+              "instructional_seed": "Teach how to present AI as a 'Drafting Partner' rather than a decision-maker. Frame the usage in terms of risk mitigation and quality control to appeal to senior leadership's concerns."
+            }
+          ]
+        }
+      ],
+      "generated_at": "2026-02-06T21:17:47.670Z"
+    },
+    "low_level": {}
+  }
+}

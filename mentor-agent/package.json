@@ -1,0 +1,12 @@
+{
+  "name": "mentor-agent",
+  "version": "1.0.0",
+  "description": "Autonomous Mentor Agent for Assessment & Mastery",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-cli.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

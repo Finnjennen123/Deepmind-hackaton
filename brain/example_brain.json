@@ -1,0 +1,42 @@
+{
+  "brain": {
+    "high_level": {
+      "onboarding": {
+        "subject": "how to integrate AI tools into my product management workflow",
+        "why": "I'm a PM and I keep seeing other PMs ship faster using AI. I feel like I'm falling behind and I want to be the person who actually knows this stuff.",
+        "summary": "PM wants to learn AI integration for product workflows to keep pace with peers"
+      },
+      "profiling": {
+        "current_level": "beginner - knows AI exists, has used ChatGPT, but no systematic understanding",
+        "vocabulary": "non-technical, business-oriented. Knows PM jargon but not AI/ML terminology",
+        "skip": [
+          "basic explanation of what AI is",
+          "history of AI"
+        ],
+        "teach_from_scratch": [
+          "prompt engineering",
+          "AI tool evaluation frameworks",
+          "workflow automation"
+        ],
+        "depth": "practical and applied, not theoretical. Wants to DO things, not understand how models work",
+        "tone": "casual, direct, no hand-holding but also not condescending. Treat them like a smart person who just hasn't learned this yet",
+        "background": "3 years as PM at mid-size SaaS. Comfortable with data and analytics. Uses Notion, Linear, Figma daily",
+        "gaps": [
+          "doesn't know which AI tools exist beyond ChatGPT",
+          "no framework for evaluating when AI is useful vs overkill",
+          "never built an AI-assisted workflow"
+        ],
+        "strengths": [
+          "strong product thinking",
+          "already data-literate",
+          "high motivation and clear use case"
+        ],
+        "focus_areas": "tool selection, workflow integration, prompt engineering, measuring AI impact on velocity",
+        "learner_context": "Works on a product team that's skeptical of AI. Wants to become the internal expert and champion"
+      },
+      "generated_at": "2026-02-06T19:19:32.469Z"
+    },
+    "course_structure": {},
+    "low_level": {}
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "user-brain",
+  "version": "1.0.0",
+  "description": "User Brain - centralized data store for learner profile and course progress",
+  "main": "createBrain.js",
+  "scripts": {
+    "test": "node test.js",
+    "generate": "node generate-brain.js"
+  },
+  "bin": {
+    "generate-brain": "./generate-brain.js"
+  },
+  "keywords": ["brain", "learner", "profile", "course"],
+  "author": "",
+  "license": "MIT"
+}

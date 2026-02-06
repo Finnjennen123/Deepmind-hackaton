@@ -1,0 +1,25 @@
+{
+  "name": "course-structure-generator",
+  "version": "1.0.0",
+  "description": "AI-powered course structure generation based on learner brain",
+  "main": "generateStructure.js",
+  "scripts": {
+    "test": "node test.js",
+    "generate": "node generate.js",
+    "verify": "node verify-personalization.js",
+    "test-lesson": "node test-lesson-generation.js"
+  },
+  "keywords": [
+    "course",
+    "structure",
+    "ai",
+    "gemini",
+    "personalized"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.2.4",
+    "node-fetch": "^2.6.1"
+  }
+}

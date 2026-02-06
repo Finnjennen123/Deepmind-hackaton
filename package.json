@@ -1,0 +1,24 @@
+{
+  "name": "personalized-learning-system",
+  "version": "1.0.0",
+  "description": "AI-powered personalized learning system - from voice to course",
+  "main": "demo.js",
+  "scripts": {
+    "dev": "cd voice && npm run dev",
+    "demo": "node demo.js",
+    "start": "node demo.js",
+    "test-full": "node test-complete-flow.js"
+  },
+  "keywords": [
+    "ai",
+    "learning",
+    "personalized",
+    "course",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.2.4"
+  }
+}
