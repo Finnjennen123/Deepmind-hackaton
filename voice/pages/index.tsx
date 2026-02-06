@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
+import { motion } from 'framer-motion'
+import { MOCK_COURSE } from '../lib/mock-course'
+import OrbExplosion from '../components/OrbExplosion'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -13,6 +17,7 @@ interface OnboardingResult {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [currentInput, setCurrentInput] = useState('')
@@ -51,6 +56,37 @@ export default function Home() {
   const speakAnalyserRef = useRef<AnalyserNode | null>(null)
   const animFrameRef = useRef<number>(0)
 
+  // ── Card fly-in animation state ──
+  const [flyingCard, setFlyingCard] = useState<{
+    start: { left: number; top: number; width: number; height: number }
+    target: { left: number; top: number; width: number; height: number }
+  } | null>(null)
+  // Consume sessionStorage data once at init and stash in a ref
+  const flyInDataRef = useRef<string | null>(null)
+  const [flyInPending, setFlyInPending] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const data = sessionStorage.getItem('condenseCard')
+      if (data) {
+        sessionStorage.removeItem('condenseCard')
+        flyInDataRef.current = data
+        return true
+      }
+    }
+    return false
+  })
+  const courseRowRef = useRef<HTMLDivElement>(null)
+
+  // ── Navigate-to-course transition state ──
+  const [navTransition, setNavTransition] = useState<{
+    orbRect: { left: number; top: number; width: number; height: number }
+    cardRect: { left: number; top: number; width: number; height: number }
+  } | null>(null)
+
+  // ── Orb explosion → course nodes transition ──
+  const [orbExplosion, setOrbExplosion] = useState<{
+    left: number; top: number; width: number; height: number
+  } | null>(null)
+
   // Refs for phase state
   const phaseRef = useRef<'onboarding' | 'profiling' | 'complete'>('onboarding')
   const onboardingResultRef = useRef<OnboardingResult | null>(null)
@@ -67,6 +103,25 @@ export default function Home() {
   }
 
   useEffect(() => { scrollToBottom() }, [messages])
+
+  // ── Check for card fly-in data on mount (arriving from course page) ──
+  useEffect(() => {
+    const stored = flyInDataRef.current
+    if (!stored) return
+    flyInDataRef.current = null
+    const startRect = JSON.parse(stored)
+    // Wait one frame so the course-row is rendered and measurable
+    requestAnimationFrame(() => {
+      if (courseRowRef.current) {
+        const t = courseRowRef.current.getBoundingClientRect()
+        setFlyingCard({
+          start: startRect,
+          target: { left: t.left, top: t.top, width: t.width, height: t.height },
+        })
+      }
+      setFlyInPending(false)
+    })
+  }, [])
 
   // ── Orb audio-reactive loop ──────────────────────────────────
 
@@ -112,10 +167,14 @@ export default function Home() {
     }
     isPlayingRef.current = false
     setIsSpeaking(false)
+    ttsEndTimeRef.current = Date.now()  // mark when TTS stopped for echo cooldown
   }, [])
 
   // Track scheduled end time for gapless PCM playback
   const nextPlayTimeRef = useRef(0)
+
+  // Timestamp when TTS last stopped — used to ignore echo in the Deepgram pipeline
+  const ttsEndTimeRef = useRef(0)
 
   const playAudioQueue = useCallback(async () => {
     if (isPlayingRef.current || audioQueueRef.current.length === 0) return
@@ -169,6 +228,7 @@ export default function Home() {
     isPlayingRef.current = false
     shouldStopSpeakingRef.current = false
     setIsSpeaking(false)
+    ttsEndTimeRef.current = Date.now()  // mark when TTS stopped for echo cooldown
   }, [getAudioContext])
 
   // ── ElevenLabs HTTP Streaming TTS (eleven_v3 for voice tags) ─
@@ -351,7 +411,7 @@ export default function Home() {
     } finally {
       setIsProcessing(false)
       if (isComplete) {
-        setStatus('Onboarding complete!')
+        setStatus('Course ready')
       } else {
         setStatus(isListeningRef.current ? 'Listening...' : 'Tap the orb to start')
       }
@@ -455,11 +515,13 @@ export default function Home() {
         recorder.start(250)
       }
 
+      stoppedRef.current = false  // reset so doSend works again
+
       let finalWords: string[] = []
-      let echoCooldownUntil = 0
       let lastSpeechTime = 0
 
       const doSend = () => {
+        if (stoppedRef.current) return          // user already clicked stop
         if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null }
         const text = finalWords.join(' ').trim()
         if (text) { sendMessageRef.current(text); finalWords = []; setCurrentInput('') }
@@ -469,9 +531,20 @@ export default function Home() {
         const data = JSON.parse(event.data)
         const now = Date.now()
 
+        // ── Ignore transcripts while muted or TTS is playing ──
+        if (isMutedRef.current) return
+        if (isSpeakingRef.current || isPlayingRef.current) return
+
+        // ── Post-TTS echo cooldown (1s) ──
+        // After TTS stops, Deepgram's pipeline may still have echoed audio
+        // buffered. Ignore transcripts for a short window after TTS ends.
+        const POST_TTS_COOLDOWN_MS = 1000
+        if (ttsEndTimeRef.current > 0 && now - ttsEndTimeRef.current < POST_TTS_COOLDOWN_MS) {
+          return
+        }
+
         // UtteranceEnd = Deepgram detected 2s of silence after speech
         if (data.type === 'UtteranceEnd') {
-          if (now < echoCooldownUntil) return
           doSend()
           return
         }
@@ -481,17 +554,6 @@ export default function Home() {
 
         // User is speaking — mark the time
         lastSpeechTime = now
-
-        // Interrupt AI if it's talking
-        if (isSpeakingRef.current || isPlayingRef.current) {
-          stopSpeaking()
-          finalWords = []
-          setCurrentInput('')
-          echoCooldownUntil = Date.now() + 600
-          return
-        }
-
-        if (now < echoCooldownUntil) return
 
         if (data.is_final) {
           finalWords.push(transcript)
@@ -519,9 +581,12 @@ export default function Home() {
       console.error('Listening error:', e)
       setStatus('Microphone access denied')
     }
-  }, [stopSpeaking, getAudioContext])
+  }, [getAudioContext])
+
+  const stoppedRef = useRef(false)
 
   const stopListening = useCallback(() => {
+    stoppedRef.current = true   // prevent any pending doSend from firing
     if (socketRef.current) { socketRef.current.close(); socketRef.current = null }
     if (mediaRecorderRef.current) {
       try { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop()) } catch (_) { }
@@ -530,18 +595,53 @@ export default function Home() {
     if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null }
     micAnalyserRef.current = null
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null }
+    // Clear any queued messages so they don't fire after stop
+    sendQueueRef.current = []
+    isSendingRef.current = false
     setIsListening(false)
     setCurrentInput('')
     setStatus('Tap the orb to start')
   }, [])
 
+  const navigateToCourse = useCallback(() => {
+    const orbEl = document.querySelector('.orb')
+    const cardEl = courseRowRef.current
+    if (orbEl && cardEl) {
+      const oRect = orbEl.getBoundingClientRect()
+      const cRect = cardEl.getBoundingClientRect()
+      setNavTransition({
+        orbRect: { left: oRect.left, top: oRect.top, width: oRect.width, height: oRect.height },
+        cardRect: { left: cRect.left, top: cRect.top, width: cRect.width, height: cRect.height },
+      })
+    } else {
+      router.push('/course')
+    }
+  }, [router])
+
   const handleOrbClick = useCallback(() => {
+    // If onboarding is complete, close everything then explode
+    if (isComplete) {
+      stopListening()
+      stopSpeaking()
+      setSidebarOpen(false)
+      // Wait for sidebar close animation so the orb re-centers
+      setTimeout(() => {
+        const orbEl = document.querySelector('.orb')
+        if (orbEl) {
+          const rect = orbEl.getBoundingClientRect()
+          setOrbExplosion({ left: rect.left, top: rect.top, width: rect.width, height: rect.height })
+        } else {
+          router.push('/course')
+        }
+      }, 450)
+      return
+    }
     // Ensure AudioContext is created & resumed on user gesture
     const ctx = getAudioContext()
     if (ctx.state === 'suspended') ctx.resume()
     if (!isListening) { setSidebarOpen(true); startListening() }
     else { stopListening(); stopSpeaking() }
-  }, [isListening, startListening, stopListening, stopSpeaking, getAudioContext])
+  }, [isListening, isComplete, router, startListening, stopListening, stopSpeaking, getAudioContext])
 
   const handleReset = useCallback(() => {
     stopListening(); stopSpeaking()
@@ -555,6 +655,7 @@ export default function Home() {
   const handleMuteToggle = useCallback(() => {
     const next = !isMuted
     setIsMuted(next)
+    // Disable tracks (sends silence to Deepgram, keeping the WebSocket alive)
     if (micStreamRef.current) micStreamRef.current.getAudioTracks().forEach(t => { t.enabled = !next })
     setStatus(next ? 'Muted' : isListening ? 'Listening...' : 'Tap the orb to start')
   }, [isMuted, isListening])
@@ -584,11 +685,12 @@ export default function Home() {
 
       <div className="container">
         <div className={`orb-area ${sidebarOpen ? 'shifted' : ''}`}>
-          <div>
-            <div className={`orb ${getOrbState()}`} style={orbStyle} onClick={handleOrbClick} />
-            <p className="status">{status}</p>
-            {isComplete && (
-              <p className="complete-message">Your personalized course is being created!</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className={`orb ${getOrbState()}`} style={{ ...orbStyle, opacity: (navTransition || orbExplosion) ? 0 : undefined }} onClick={handleOrbClick} />
+            {isComplete ? (
+              <p className="complete-message">Tap the orb to view course</p>
+            ) : (
+              <p className="status">{status}</p>
             )}
             <button className={`mute-btn ${isMuted ? 'active' : ''}`} onClick={handleMuteToggle} title={isMuted ? 'Unmute mic' : 'Mute mic'}>
               {isMuted ? (
@@ -601,7 +703,41 @@ export default function Home() {
                 </svg>
               )}
             </button>
+
           </div>
+
+          {/* Courses section — anchored to bottom */}
+          {(() => {
+            const courses = [MOCK_COURSE];
+            if (courses.length === 0) return null;
+            const totalParts = (c: typeof MOCK_COURSE) => c.phases.reduce((s, p) => s + p.parts.length, 0);
+            const masteredParts = (c: typeof MOCK_COURSE) => c.phases.reduce((s, p) => s + p.parts.filter(pt => pt.status === 'mastered').length, 0);
+            return (
+              <div className={`courses-section ${sidebarOpen ? 'courses-shifted' : ''}`}>
+                <p className="courses-label">Your courses</p>
+                {courses.map((c, i) => {
+                  const total = totalParts(c);
+                  const mastered = masteredParts(c);
+                  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+                  return (
+                    <div key={i} className="course-row" ref={courseRowRef} style={{ visibility: (flyInPending || flyingCard || navTransition) ? 'hidden' : 'visible' }} onClick={navigateToCourse}>
+                      <div className="course-row-left">
+                        <div className="course-row-dot" style={{ background: pct === 100 ? '#00c864' : '#ff6b00' }} />
+                        <div className="course-row-info">
+                          <span className="course-row-title">{c.title}</span>
+                          <span className="course-row-meta">{c.phases.length} phases · {total} lessons</span>
+                        </div>
+                      </div>
+                      <div className="course-row-right">
+                        <span className="course-row-pct" style={{ color: pct === 100 ? '#00c864' : '#999' }}>{pct}%</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {!sidebarOpen && (
@@ -647,13 +783,235 @@ export default function Home() {
         .complete-message {
           color: #00c864;
           font-size: 14px;
-          margin-top: 8px;
+          margin-top: 20px;
           text-align: center;
         }
         .orb.complete {
           background: linear-gradient(135deg, #00c864, #00a855);
         }
+        .courses-section {
+          position: absolute;
+          bottom: 32px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 300px;
+          transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .courses-section.courses-shifted {
+          left: calc(50% - 190px);
+        }
+        .courses-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: #a0a0a0;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          margin: 0 0 8px 2px;
+        }
+        .course-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 12px;
+          border: 1px solid #ece9e4;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          background: #faf9f7;
+        }
+        .course-row:hover {
+          border-color: #d9d4cd;
+          background: #f0eeea;
+        }
+        .course-row + .course-row {
+          margin-top: 6px;
+        }
+        .course-row-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+        .course-row-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .course-row-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .course-row-title {
+          font-size: 13px;
+          font-weight: 500;
+          color: #1a1a1a;
+          letter-spacing: -0.01em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .course-row-meta {
+          font-size: 11px;
+          color: #a0a0a0;
+          margin-top: 1px;
+        }
+        .course-row-right {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .course-row-pct {
+          font-size: 11px;
+          font-weight: 500;
+        }
       `}</style>
+
+      {/* ── Navigate-to-course transition ── */}
+      {navTransition && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none' }}>
+          {/* Orb clone — shrinks and floats up */}
+          <motion.div
+            initial={{
+              left: navTransition.orbRect.left,
+              top: navTransition.orbRect.top,
+              width: navTransition.orbRect.width,
+              height: navTransition.orbRect.height,
+              opacity: 1,
+              scale: 1,
+            }}
+            animate={{
+              scale: 0.25,
+              opacity: 0,
+              y: -60,
+            }}
+            transition={{ duration: 0.55, ease: [0.32, 0, 0.15, 1] }}
+            style={{
+              position: 'fixed',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #ff6b00, #ff8533)',
+              boxShadow: '0 0 40px rgba(255, 107, 0, 0.3)',
+            }}
+          />
+
+          {/* Card clone — expands to fill viewport */}
+          <motion.div
+            initial={{
+              left: navTransition.cardRect.left,
+              top: navTransition.cardRect.top,
+              width: navTransition.cardRect.width,
+              height: navTransition.cardRect.height,
+              borderRadius: 10,
+              opacity: 1,
+            }}
+            animate={{
+              left: 0,
+              top: 0,
+              width: typeof window !== 'undefined' ? window.innerWidth : 1440,
+              height: typeof window !== 'undefined' ? window.innerHeight : 900,
+              borderRadius: 0,
+              opacity: 1,
+            }}
+            transition={{ duration: 0.55, ease: [0.32, 0, 0.15, 1] }}
+            onAnimationComplete={() => router.push('/course')}
+            style={{
+              position: 'fixed',
+              background: '#faf9f7',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+              border: '1px solid #ece9e4',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card content that fades away as it expands */}
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 12px',
+                whiteSpace: 'nowrap',
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff6b00', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column' as const }}>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', letterSpacing: '-0.01em' }}>{MOCK_COURSE.title}</span>
+                  <span style={{ fontSize: 11, color: '#a0a0a0', marginTop: 1 }}>{MOCK_COURSE.phases.length} phases</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── Orb explosion → course nodes transition ── */}
+      {orbExplosion && (
+        <OrbExplosion
+          orbRect={orbExplosion}
+          onComplete={() => {
+            router.push('/course')
+          }}
+        />
+      )}
+
+      {/* Card fly-in — arrives from course page and lands in the course row */}
+      {flyingCard && (() => {
+        const c = MOCK_COURSE
+        const totalP = c.phases.reduce((s, p) => s + p.parts.length, 0)
+        const masteredP = c.phases.reduce((s, p) => s + p.parts.filter(pt => pt.status === 'mastered').length, 0)
+        const pct = totalP > 0 ? Math.round((masteredP / totalP) * 100) : 0
+        return (
+          <motion.div
+            key="flying-card"
+            initial={{
+              left: flyingCard.start.left,
+              top: flyingCard.start.top,
+              width: flyingCard.start.width,
+            }}
+            animate={{
+              left: flyingCard.target.left,
+              top: flyingCard.target.top,
+              width: flyingCard.target.width,
+            }}
+            transition={{
+              duration: 0.6,
+              ease: [0.32, 0, 0.15, 1],
+            }}
+            onAnimationComplete={() => setFlyingCard(null)}
+            style={{
+              position: 'fixed',
+              zIndex: 9999,
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 12px',
+              border: '1px solid #ece9e4',
+              borderRadius: 10,
+              background: '#faf9f7',
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: pct === 100 ? '#00c864' : '#ff6b00', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column' as const }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>{c.title}</span>
+                <span style={{ fontSize: 11, color: '#a0a0a0', marginTop: 1 }}>{c.phases.length} phases · {totalP} lessons</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 500, color: pct === 100 ? '#00c864' : '#999' }}>{pct}%</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </div>
+          </motion.div>
+        )
+      })()}
     </>
   )
 }

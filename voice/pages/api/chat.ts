@@ -69,24 +69,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Call OpenRouter API
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
-        messages: fullMessages,
-        tools: tools,
-        tool_choice: "auto",
-      }),
-    })
+    // Call OpenRouter API with retries for transient network failures
+    const MAX_RETRIES = 3
+    let response: Response | null = null
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.0-flash-001",
+            messages: fullMessages,
+            tools: tools,
+            tool_choice: "auto",
+          }),
+        })
+        break // success, exit retry loop
+      } catch (fetchErr: any) {
+        console.error(`OpenRouter fetch attempt ${attempt}/${MAX_RETRIES} failed:`, fetchErr.cause?.code || fetchErr.message)
+        if (attempt === MAX_RETRIES) {
+          return res.status(502).json({ error: 'Failed to reach OpenRouter after retries' })
+        }
+        // Wait before retrying: 500ms, 1000ms
+        await new Promise(r => setTimeout(r, attempt * 500))
+      }
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('OpenRouter error:', errorText)
+    if (!response || !response.ok) {
+      const errorText = await response?.text().catch(() => '') || ''
+      console.error('OpenRouter error:', response?.status, errorText)
       return res.status(500).json({ error: 'OpenRouter API error' })
     }
 

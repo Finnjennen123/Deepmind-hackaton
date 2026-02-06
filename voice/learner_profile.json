@@ -1,0 +1,12 @@
+{
+  "subject": "quantum physics",
+  "reason": "refresh knowledge",
+  "summary": "The user wants to refresh their general knowledge of quantum physics, which they haven't studied since seventh grade.",
+  "onboarding_summary": "The user wants to refresh their general knowledge of quantum physics, which they haven't studied since seventh grade.",
+  "starting_level": "complete beginner - no prior knowledge",
+  "depth": "broad overview",
+  "focus_areas": "general quantum physics",
+  "skip_areas": "None",
+  "learner_context": "Not a quantum physicist, just wants general knowledge",
+  "notes": "Studied quantum physics in seventh grade but wants a refresh."
+}
