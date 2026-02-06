@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@composio/core": "^0.6.3",
     "@google/generative-ai": "^0.21.0",
     "dotenv": "^16.4.0",
     "next": "^14.2.0",
