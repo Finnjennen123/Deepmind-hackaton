@@ -12,96 +12,84 @@
         "skip_areas": "large scale farming, landscaping",
         "notes": "Learner lives in an apartment with a small balcony."
       },
-      "generated_at": "2026-02-07T01:02:15.197Z"
+      "generated_at": "2026-02-07T01:03:58.253Z"
     },
     "course_structure": {
-      "title": "The Balcony Harvest: Practical Urban Gardening for Small Spaces",
+      "title": "The Balcony Harvest: Container Gardening for Small Apartment Spaces",
       "phases": [
         {
           "phase_number": 1,
-          "title": "Assessing Your Micro-Climate",
-          "description": "You will be able to evaluate your balcony's light, wind, and weight capacity to select the right location for your plants.",
+          "title": "Foundations of the Balcony Ecosystem",
+          "description": "You will be able to assess your micro-climate and select the right containers to build a sustainable base for your garden.",
           "lessons": [
             {
               "lesson_number": 1,
-              "title": "Map Your Sunlight and Shadow Patterns",
-              "description": "Learn how to track sunlight hours to determine if your balcony is full-sun, partial, or shade.",
-              "instructional_seed": "Assume total beginner level. Teach how to use a phone's compass and a simple 'light journal' to map shadows, emphasizing that urban buildings create unique micro-climates."
+              "title": "Audit Your Balcony's Sunlight and Micro-Climate",
+              "description": "Learn how to track light hours and identify wind patterns on your specific balcony.",
+              "instructional_seed": "Teach the learner how to categorize their balcony as full sun, partial, or shade, emphasizing that apartment height affects wind and heat. Keep it practical with a DIY light-tracking method."
             },
             {
               "lesson_number": 2,
-              "title": "Manage Wind and Weight Constraints",
-              "description": "Understand the safety and structural limits of apartment balconies for heavy pots and soil.",
-              "instructional_seed": "Address the safety concerns of 'wind tunnels' in high-rises and explain how to calculate the weight of wet soil to ensure balcony safety."
+              "title": "Choose Your Containers and Potting Mix",
+              "description": "Identify the difference between gardening soil and container mix, and select pots with proper drainage.",
+              "instructional_seed": "Explain why garden soil is too heavy for balcony pots; focus on the importance of drainage holes and lightweight potting mixes. Highlighting fabric pots vs. plastic for weight restrictions."
             }
           ]
         },
         {
           "phase_number": 2,
-          "title": "The Urban Container Kit",
-          "description": "You will be able to select the ideal pots, vertical systems, and specialized soil for productive container gardening.",
+          "title": "Vegetable and Herb Selection",
+          "description": "You will be able to select plants that thrive in confined spaces and set them up for growth.",
           "lessons": [
             {
               "lesson_number": 3,
-              "title": "Choose High-Performance Containers",
-              "description": "Compare terracotta, plastic, and smart self-watering pots for small-space efficiency.",
-              "instructional_seed": "Focus on drainage and size requirements for different vegetables. Introduce self-watering planters as a solution for busy apartment dwellers."
+              "title": "Select Reliable Herbs for Beginners",
+              "description": "Pick the easiest culinary herbs that grow well in small pots, like mint, basil, and rosemary.",
+              "instructional_seed": "Focus on 'pro-level' beginner herbs, explaining which ones should never be planted together (like mint in its own pot) and how to harvest them to encourage growth."
             },
             {
               "lesson_number": 4,
-              "title": "Go Green Vertically",
-              "description": "Utilize wall space and railings with pocket planters and vertical shelving.",
-              "instructional_seed": "Provide practical installation ideas for apartment-friendly vertical systems that don't require permanent drilling into exterior walls."
-            },
-            {
-              "lesson_number": 5,
-              "title": "Mix the Perfect Container Soil",
-              "description": "Learn why garden soil fails in pots and how to create a lightweight, nutrient-rich potting mix.",
-              "instructional_seed": "Deep dive into the 'soilless' mix concept using peat/coir, perlite, and compost. Explain aeration and water retention in the context of limited pot volume."
+              "title": "Pick High-Yield Compact Vegetables",
+              "description": "Explore 'patio' and 'dwarf' varieties of vegetables that produce a lot of food in limited space.",
+              "instructional_seed": "Introduce the learner to determinate tomatoes, leafy greens, and radishes. Emphasize why choosing 'dwarf' varieties is critical for apartment success."
             }
           ]
         },
         {
           "phase_number": 3,
-          "title": "High-Yield Plants for Tiny Spaces",
-          "description": "You will be able to select and plant specific herbs and vegetables that thrive in restricted environments.",
+          "title": "Vertical and Space-Saving Techniques",
+          "description": "You will be able to maximize your square footage by utilizing vertical space and trellising.",
           "lessons": [
             {
-              "lesson_number": 6,
-              "title": "Grow a Culinary Herb Garden",
-              "description": "Start with high-success herbs like basil, mint, and chives that provide immediate utility.",
-              "instructional_seed": "Focus on the 'cut and come again' method. Explain which herbs can share a pot (rosemary/thyme) and which must be solo (mint)."
+              "lesson_number": 5,
+              "title": "Install Vertical Planters and Railing Boxes",
+              "description": "Learn to use the 'Z-axis' of your balcony with wall-mounted pockets and railing systems.",
+              "instructional_seed": "Provide a practical guide on installing railing planters safely and using stackable towers. Focus on weight distribution to ensure balcony safety."
             },
             {
-              "lesson_number": 7,
-              "title": "Plant Compact Vegetables and Leafy Greens",
-              "description": "Select 'patio' variety tomatoes, peppers, and salad greens designed for containers.",
-              "instructional_seed": "Explain 'determinate' vs 'indeterminate' varieties. Focus on high-yield, small-footprint crops like radishes and bush-variety beans."
+              "lesson_number": 6,
+              "title": "Build Simple Trellises for Climbing Plants",
+              "description": "Train beans and peas to grow upward instead of outward.",
+              "instructional_seed": "Teach the basics of vertical training for climbing vegetables to keep a small footprint. Use apartment-friendly materials like bamboo stakes or twine."
             }
           ]
         },
         {
           "phase_number": 4,
-          "title": "Maintenance and Trouble-Shooting",
-          "description": "You will be able to keep your garden alive through proper watering, feeding, and pest management.",
+          "title": "Maintenance and Longevity",
+          "description": "You will be able to keep your plants alive, healthy, and productive through a full growing season.",
           "lessons": [
             {
+              "lesson_number": 7,
+              "title": "Master Container Watering and Drainage",
+              "description": "Understand the specific hydration needs of potted plants which dry out faster than the ground.",
+              "instructional_seed": "Teach the 'finger test' for moisture and the importance of deep watering. Explain how to prevent water runoff from annoying neighbors below."
+            },
+            {
               "lesson_number": 8,
-              "title": "Master Apartment Watering and Drainage",
-              "description": "Learn to water efficiently without flooding your neighbors below.",
-              "instructional_seed": "Focus on 'deep watering' and the use of saucers. Explain how to check soil moisture using the finger-test method."
-            },
-            {
-              "lesson_number": 9,
-              "title": "Identify and Solve Common Urban Pest Issues",
-              "description": "Spot aphids, gnats, and mold early using organic, kitchen-safe methods.",
-              "instructional_seed": "Keep solutions practical and non-toxic for a living space. Teach the use of neem oil and soapy water sprays."
-            },
-            {
-              "lesson_number": 10,
-              "title": "Feed Your Plants in Containers",
-              "description": "Understand the lifecycle of nutrients in limited soil and when to fertilize.",
-              "instructional_seed": "Teach the basics of liquid N-P-K fertilizers and the timing for feeding 'heavy feeders' like tomatoes vs. light feeders like herbs."
+              "title": "Fertilize and Manage Urban Pests",
+              "description": "Learn how to feed your plants and identify common balcony bugs like aphids.",
+              "instructional_seed": "Since the learner is a beginner, focus on liquid organic fertilizers and natural pest control methods like neem oil or soap sprays suitable for living spaces."
             }
           ]
         }
