@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { motion } from 'framer-motion'
 import { MOCK_COURSE } from '../lib/mock-course'
+import { Course } from '../lib/course-types'
 import OrbExplosion from '../components/OrbExplosion'
 import { authClient } from '../lib/auth-client'
 
@@ -34,6 +35,7 @@ export default function Home() {
   const [phase, setPhase] = useState<'onboarding' | 'profiling' | 'complete'>('onboarding')
   const [onboardingResult, setOnboardingResult] = useState<OnboardingResult | null>(null)
   const [isComplete, setIsComplete] = useState(false)
+  const [generatedCourse, setGeneratedCourse] = useState<Course | null>(null)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const micStreamRef = useRef<MediaStream | null>(null)
@@ -402,6 +404,36 @@ export default function Home() {
           queueTtsSentence(finalMessage, abort.signal)
 
           console.log('[CHAT] Onboarding complete! Profile saved.')
+
+          // ── Generate Course Structure ──
+          if (data.learnerProfile) {
+            setStatus('Generating course...')
+            try {
+              console.log('[CLIENT] Sending profile to generator:', data.learnerProfile)
+              const genRes = await fetch('/api/course/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data.learnerProfile)
+              })
+              
+              if (genRes.ok) {
+                const newCourse = await genRes.json()
+                console.log('[CLIENT] Received generated course:', newCourse)
+                setGeneratedCourse(newCourse)
+                // Save to session for course page
+                sessionStorage.setItem('currentCourse', JSON.stringify(newCourse))
+                sessionStorage.setItem('learnerProfile', JSON.stringify(data.learnerProfile))
+                setStatus('Course ready')
+              } else {
+                const errText = await genRes.text()
+                console.error('Failed to generate course:', errText)
+                setStatus('Generation failed')
+              }
+            } catch (e) {
+              console.error('Error generating course:', e)
+              setStatus('Generation failed')
+            }
+          }
         }
       } else {
         // Text response - stream it
@@ -641,9 +673,18 @@ export default function Home() {
     // Ensure AudioContext is created & resumed on user gesture
     const ctx = getAudioContext()
     if (ctx.state === 'suspended') ctx.resume()
-    if (!isListening) { setSidebarOpen(true); startListening() }
+    if (!isListening) { 
+      // If we are starting fresh (messages empty), ensure no old course is hanging around
+      if (messages.length === 0) {
+        setGeneratedCourse(null)
+        sessionStorage.removeItem('currentCourse')
+        sessionStorage.removeItem('learnerProfile')
+      }
+      setSidebarOpen(true); 
+      startListening() 
+    }
     else { stopListening(); stopSpeaking() }
-  }, [isListening, isComplete, router, startListening, stopListening, stopSpeaking, getAudioContext])
+  }, [isListening, isComplete, router, startListening, stopListening, stopSpeaking, getAudioContext, messages.length])
 
   const handleReset = useCallback(() => {
     stopListening(); stopSpeaking()
@@ -651,6 +692,9 @@ export default function Home() {
     setPhase('onboarding')
     setOnboardingResult(null)
     setIsComplete(false)
+    setGeneratedCourse(null) // Clear any previous course
+    sessionStorage.removeItem('currentCourse') // Clear session
+    sessionStorage.removeItem('learnerProfile') // Clear profile
     setStatus('Tap the orb to start')
   }, [stopListening, stopSpeaking])
 
@@ -666,6 +710,58 @@ export default function Home() {
     await authClient.signOut()
     router.replace('/auth/sign-in')
   }, [router])
+
+  const handleDemoLoad = useCallback(async () => {
+    try {
+      setStatus('Loading demo...')
+      stopListening()
+      stopSpeaking()
+      
+      const res = await fetch('/api/demo/load-brain')
+      if (res.ok) {
+        const data = await res.json()
+        
+        // TRIGGER GENERATION FROM PROFILE
+        if (data.learnerProfile) {
+          setStatus('Generating course...')
+          try {
+            console.log('[CLIENT] Sending demo profile to generator:', data.learnerProfile)
+            const genRes = await fetch('/api/course/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data.learnerProfile)
+            })
+            
+            if (genRes.ok) {
+              const newCourse = await genRes.json()
+              console.log('[CLIENT] Received generated course:', newCourse)
+              setGeneratedCourse(newCourse)
+              // Save to session for course page
+              sessionStorage.setItem('currentCourse', JSON.stringify(newCourse))
+              sessionStorage.setItem('learnerProfile', JSON.stringify(data.learnerProfile))
+              setStatus('Course ready')
+              setPhase('complete')
+              setIsComplete(true)
+              setMessages([{ role: 'assistant', content: "I've generated a fresh course for you based on the demo profile. Click the orb to begin!" }])
+            } else {
+              const errText = await genRes.text()
+              console.error('Failed to generate course:', errText)
+              setStatus('Generation failed')
+            }
+          } catch (e) {
+            console.error('Error generating course:', e)
+            setStatus('Generation failed')
+          }
+        }
+      } else {
+        setStatus('Demo failed')
+        console.error('Demo load failed')
+      }
+    } catch (e) {
+      setStatus('Error loading demo')
+      console.error(e)
+    }
+  }, [stopListening, stopSpeaking])
 
   const getOrbState = () => {
     if (isComplete) return 'complete'
@@ -692,11 +788,28 @@ export default function Home() {
 
       <div className="container">
         <div className={`orb-area ${sidebarOpen ? 'shifted' : ''}`}>
-          {session.data && (
-            <button type="button" className="sign-out-btn" onClick={handleSignOut} title="Sign out">
-              Sign out
+          <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: 10, zIndex: 100 }}>
+            <button 
+              type="button" 
+              onClick={handleDemoLoad}
+              style={{
+                padding: '6px 12px',
+                background: '#eee',
+                border: '1px solid #ddd',
+                borderRadius: 6,
+                fontSize: 12,
+                cursor: 'pointer',
+                color: '#333'
+              }}
+            >
+              Demo
             </button>
-          )}
+            {session.data && (
+              <button type="button" className="sign-out-btn" onClick={handleSignOut} title="Sign out">
+                Sign out
+              </button>
+            )}
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className={`orb ${getOrbState()}`} style={{ ...orbStyle, opacity: (navTransition || orbExplosion) ? 0 : undefined }} onClick={handleOrbClick} />
             {isComplete ? (
@@ -720,14 +833,19 @@ export default function Home() {
 
           {/* Courses section — anchored to bottom */}
           {(() => {
-            const courses = [MOCK_COURSE];
-            if (courses.length === 0) return null;
-            const totalParts = (c: typeof MOCK_COURSE) => c.phases.reduce((s, p) => s + p.parts.length, 0);
-            const masteredParts = (c: typeof MOCK_COURSE) => c.phases.reduce((s, p) => s + p.parts.filter(pt => pt.status === 'mastered').length, 0);
+            // Only show the course if it has been generated or loaded from demo.
+            // No more hardcoded MOCK_COURSE to confuse the user.
+            const displayCourses = generatedCourse ? [generatedCourse] : [];
+            
+            if (displayCourses.length === 0) return null;
+            
             return (
               <div className={`courses-section ${sidebarOpen ? 'courses-shifted' : ''}`}>
                 <p className="courses-label">Your courses</p>
-                {courses.map((c, i) => {
+                {displayCourses.map((c, i) => {
+                  const totalParts = (course: Course) => course.phases.reduce((s, p) => s + p.parts.length, 0);
+                  const masteredParts = (course: Course) => course.phases.reduce((s, p) => s + p.parts.filter(pt => pt.status === 'mastered').length, 0);
+                  
                   const total = totalParts(c);
                   const mastered = masteredParts(c);
                   const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
@@ -953,8 +1071,8 @@ export default function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff6b00', flexShrink: 0 }} />
                 <div style={{ display: 'flex', flexDirection: 'column' as const }}>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', letterSpacing: '-0.01em' }}>{MOCK_COURSE.title}</span>
-                  <span style={{ fontSize: 11, color: '#a0a0a0', marginTop: 1 }}>{MOCK_COURSE.phases.length} phases</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', letterSpacing: '-0.01em' }}>{(generatedCourse || MOCK_COURSE).title}</span>
+                  <span style={{ fontSize: 11, color: '#a0a0a0', marginTop: 1 }}>{(generatedCourse || MOCK_COURSE).phases.length} phases</span>
                 </div>
               </div>
             </motion.div>
@@ -974,7 +1092,7 @@ export default function Home() {
 
       {/* Card fly-in — arrives from course page and lands in the course row */}
       {flyingCard && (() => {
-        const c = MOCK_COURSE
+        const c = generatedCourse || MOCK_COURSE
         const totalP = c.phases.reduce((s, p) => s + p.parts.length, 0)
         const masteredP = c.phases.reduce((s, p) => s + p.parts.filter(pt => pt.status === 'mastered').length, 0)
         const pct = totalP > 0 ? Math.round((masteredP / totalP) * 100) : 0

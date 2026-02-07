@@ -1,0 +1,101 @@
+{
+  "brain": {
+    "high_level": {
+      "onboarding": {
+        "subject": "Urban Gardening for Small Spaces",
+        "why": "To grow fresh vegetables and herbs on my apartment balcony",
+        "summary": "Wants to learn how to start a productive garden in a small apartment balcony space."
+      },
+      "profiling": {
+        "starting_level": "complete beginner",
+        "depth": "practical and hands-on",
+        "focus_areas": "container gardening, vertical planters, herbs, easy vegetables",
+        "skip_areas": "large scale farming, landscaping",
+        "notes": "Learner lives in an apartment with a small balcony."
+      },
+      "generated_at": "2026-02-06T21:06:18.047Z"
+    },
+    "course_structure": {
+      "title": "Balcony to Bounty: Urban Gardening Masterclass",
+      "phases": [
+        {
+          "phase_number": 1,
+          "title": "Assessing Your Space & Conditions",
+          "description": "Evaluate your balcony's light, wind, and space to choose the right plants.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Mapping Sunlight and Microclimates",
+              "description": "How to track sun exposure on your balcony to know what can actually grow there.",
+              "instructional_seed": "Teach the learner how to map sunlight hours on their balcony. Explain direct vs indirect light and how buildings create microclimates. The goal is to prevent them from buying sun-loving plants for a shady corner."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Container Logistics: Pots, Soil, and Drainage",
+              "description": "Choosing the right containers and soil mix for a concrete environment.",
+              "instructional_seed": "Explain why garden soil kills pot plants (compaction). Teach the recipe for a good potting mix. Discuss pot materials (plastic vs terracotta) in relation to wind and water retention."
+            }
+          ]
+        },
+        {
+          "phase_number": 2,
+          "title": "The Starter Kitchen Garden",
+          "description": "Planting your first high-success crops: herbs and leafy greens.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Herb Spirals and Vertical Planters",
+              "description": "Maximizing vertical space to grow basil, mint, and parsley.",
+              "instructional_seed": "Focus on verticality. Show how to use wall-mounted pockets or tiered stands. Teach the specific needs of woody herbs (rosemary) vs soft herbs (basil)."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Cut-and-Come-Again Greens",
+              "description": "Growing lettuce, spinach, and arugula for continuous harvesting.",
+              "instructional_seed": "Teach the technique of harvesting outer leaves so the plant keeps growing. Explain succession planting so they never run out of salad."
+            }
+          ]
+        },
+        {
+          "phase_number": 3,
+          "title": "Fruiting Vegetables in Pots",
+          "description": "Moving up to tomatoes, peppers, and beans in a container environment.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Tomatoes in Small Spaces",
+              "description": "Selecting determinate varieties and managing support structures.",
+              "instructional_seed": "Explain the difference between determinate (bush) and indeterminate (vine) tomatoes. Teach pruning suckers to keep plants manageable in a small space."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Pollination Partnering",
+              "description": "How to ensure fruit set when you don't have many bees around.",
+              "instructional_seed": "Urban balconies often lack pollinators. Teach hand-pollination techniques for peppers and tomatoes using a paintbrush or gentle shaking."
+            }
+          ]
+        },
+        {
+          "phase_number": 4,
+          "title": "Maintenance and Troubleshooting",
+          "description": "Keeping your garden alive through heatwaves, pests, and vacations.",
+          "lessons": [
+            {
+              "lesson_number": 1,
+              "title": "Watering Systems for Busy People",
+              "description": "Setting up self-watering pots or simple drip irrigation.",
+              "instructional_seed": "Pots dry out fast. Teach how to make a DIY self-watering reservoir or use olla pots. Discuss mulching to retain moisture."
+            },
+            {
+              "lesson_number": 2,
+              "title": "Organic Pest Control",
+              "description": "Dealing with aphids and mites without spraying toxic chemicals.",
+              "instructional_seed": "Teach identification of common urban pests like spider mites. Explain neem oil and soapy water sprays as safe treatments for food plants."
+            }
+          ]
+        }
+      ]
+    },
+    "low_level": {}
+  }
+}

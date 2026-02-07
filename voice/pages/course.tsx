@@ -25,6 +25,10 @@ export default function CoursePage() {
 
   // Load course and profile from session if available
   useEffect(() => {
+    // FORCE RESET: Clear stored course to ensure we use the fresh MOCK_COURSE (with empty content)
+    // This allows the generation logic to trigger immediately for the user.
+    // sessionStorage.removeItem('currentCourse');
+
     const storedCourse = sessionStorage.getItem('currentCourse');
     const storedProfile = sessionStorage.getItem('learnerProfile');
     
@@ -33,10 +37,10 @@ export default function CoursePage() {
         setCourse(JSON.parse(storedCourse));
       } catch (e) {
         console.error('Failed to parse stored course', e);
-        setCourse(MOCK_COURSE);
+        router.replace('/');
       }
     } else {
-      setCourse(MOCK_COURSE);
+      router.replace('/');
     }
     
     if (storedProfile) {
@@ -70,6 +74,12 @@ export default function CoursePage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const resetViewRef = useRef<(() => void) | null>(null);
 
+<<<<<<< HEAD
+=======
+  // If course is not loaded yet, show nothing or a loader
+  // Moved check to end of component to avoid hook count mismatch
+  
+>>>>>>> feb9802 (Fix course generation, onboarding flow, and demo mode)
   // Find selected part and its phase
   const selectedPart: Part | null = (() => {
     if (!selectedPartId || !course) return null;
@@ -89,6 +99,7 @@ export default function CoursePage() {
   })();
 
   const handlePartClick = useCallback((partId: string) => {
+    console.log('[COURSE] Part clicked:', partId);
     setSelectedPartId(partId);
   }, []);
 
@@ -104,6 +115,7 @@ export default function CoursePage() {
   // Helper: update a part's status and unlock next
   const updatePartStatus = useCallback((partId: string, newStatus: PartStatus) => {
     setCourse(prev => {
+      if (!prev) return null;
       const updated = JSON.parse(JSON.stringify(prev)) as Course;
       let foundPart = false;
       let shouldUnlockNext = false;
@@ -235,28 +247,45 @@ export default function CoursePage() {
 
   // ── Generate Lesson Content ──
   const generateLessonContent = useCallback(async (partId: string) => {
-    // 1. Set loading state
+    console.log('[COURSE] generateLessonContent called for:', partId);
+    
+    if (!course) return;
+
+    // 1. Get lesson details synchronously from current state
     let partTitle = '';
     let phaseTitle = '';
     let phaseDesc = '';
+    
+    for (const phase of course.phases) {
+      const part = phase.parts.find(p => p.id === partId);
+      if (part) {
+        partTitle = part.title;
+        phaseTitle = phase.title;
+        phaseDesc = phase.description;
+        break;
+      }
+    }
 
+    if (!partTitle) {
+      console.error('Part not found for generation:', partId);
+      return;
+    }
+
+    // 2. Set loading state
     setCourse(prev => {
+      if (!prev) return null;
       const updated = JSON.parse(JSON.stringify(prev)) as Course;
       for (const phase of updated.phases) {
         const part = phase.parts.find(p => p.id === partId);
         if (part) {
           part.isLoading = true;
-          partTitle = part.title;
-          phaseTitle = phase.title;
-          phaseDesc = phase.description;
-          break;
         }
       }
       return updated;
     });
 
     try {
-      // 2. Call API
+      // 3. Call API
       const res = await fetch('/api/generate-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -278,9 +307,11 @@ export default function CoursePage() {
       if (!res.ok) throw new Error('Failed to generate lesson');
 
       const data = await res.json();
+      console.log('[COURSE] Lesson generated successfully');
 
-      // 3. Update course with generated content
+      // 4. Update course with generated content
       setCourse(prev => {
+        if (!prev) return null;
         const updated = JSON.parse(JSON.stringify(prev)) as Course;
         for (const phase of updated.phases) {
           const part = phase.parts.find(p => p.id === partId);
@@ -300,6 +331,7 @@ export default function CoursePage() {
       console.error('Error generating lesson:', error);
       // Reset loading state on error
       setCourse(prev => {
+        if (!prev) return null;
         const updated = JSON.parse(JSON.stringify(prev)) as Course;
         for (const phase of updated.phases) {
           const part = phase.parts.find(p => p.id === partId);
@@ -311,7 +343,7 @@ export default function CoursePage() {
         return updated;
       });
     }
-  }, []);
+  }, [course, learnerProfile]);
 
   // Trigger generation if content is missing
   useEffect(() => {
@@ -326,7 +358,10 @@ export default function CoursePage() {
     };
 
     const part = findPart();
+    console.log('[COURSE] Checking part:', part?.id, 'Content:', part?.content ? 'Yes' : 'No', 'Loading:', part?.isLoading);
+    
     if (part && !part.content && !part.isLoading) {
+      console.log('[COURSE] Triggering generation for:', part.id);
       generateLessonContent(selectedPartId);
     }
   }, [selectedPartId, course, generateLessonContent]);
@@ -420,7 +455,7 @@ export default function CoursePage() {
     };
   }, [isCondensing, router]);
 
-  // If course is not loaded yet, show nothing
+
   if (!course) return null;
 
   return (

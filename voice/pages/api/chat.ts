@@ -67,19 +67,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]
 
     // If transitioning to profiling, add a hidden instruction
-    if (phase === 'profiling' && clientMessages.length > 0) {
+    if (phase === 'profiling') {
       // Check if we already have the transition message
       const hasTransition = clientMessages.some(m =>
         m.role === 'user' && m.content.includes('[SYSTEM: Onboarding phase complete')
       )
+      // Only inject the system prompt if we haven't already AND if we have the result
       if (!hasTransition && onboardingResult) {
-        // Insert transition message before the last user message
-        fullMessages.splice(fullMessages.length - 1, 0, {
+        // Insert transition message as a system-like user message
+        // This ensures the model sees it in context
+        fullMessages.push({
           role: 'user' as const,
-          content: "[SYSTEM: Onboarding phase complete. You now know what they want to learn and why. Continue the conversation naturally to figure out their current level and how deep the course should go. Don't start with a new greeting - just continue the flow.]"
+          content: `[SYSTEM: Onboarding phase complete. 
+          User wants to learn: ${onboardingResult.subject}
+          Reason: ${onboardingResult.reason}
+          Summary: ${onboardingResult.summary}
+          
+          You now know what they want to learn and why. 
+          Now, switch to PROFILING mode.
+          Your goal is to determine their current skill level and how deep the course should go.
+          Ask ONE simple question to start this phase.
+          Don't start with a new greeting - just continue the flow naturally.]`
         })
       }
     }
+
+    // DEBUG: Log the last message to see what we're sending
+    // console.log('[CHAT] Last message sent to LLM:', fullMessages[fullMessages.length - 1].content);
 
     // Call LLM provider
     const data = await callLLM({ messages: fullMessages, tools })
@@ -123,16 +137,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           notes: profilingResult.notes
         }
 
-        if (!userId) {
-          return res.status(401).json({
-            error: 'Not authenticated',
-            message: 'Please sign in before completing profiling.',
-          })
-        }
+        // Removed auth check to allow guest generation
+        // if (!userId) { ... }
 
         try {
-          const id = await insertLearnerProfile(userId, learnerProfile)
-          console.log('Saved learner profile to DB with id:', id)
+          if (userId) {
+            const id = await insertLearnerProfile(userId, learnerProfile)
+            console.log('Saved learner profile to DB with id:', id)
+          }
         } catch (e) {
           console.error('Failed to save learner profile to DB:', e)
         }

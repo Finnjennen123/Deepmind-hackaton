@@ -6,8 +6,9 @@ export interface SearchResult {
 }
 
 export const searchWeb = async (query: string, count = 5): Promise<SearchResult[]> => {
-  if (!process.env.YDC_API_KEY) {
-    console.warn('⚠️ YDC_API_KEY not found in environment. Skipping web search.');
+  const apiKey = process.env.YDC_API_KEY || process.env.YOU_API_KEY;
+  if (!apiKey) {
+    console.warn('⚠️ YDC_API_KEY or YOU_API_KEY not found in environment. Skipping web search.');
     return [];
   }
 
@@ -16,7 +17,7 @@ export const searchWeb = async (query: string, count = 5): Promise<SearchResult[
       `https://ydc-index.io/v1/search?query=${encodeURIComponent(query)}&count=${count}`,
       {
         headers: {
-          "X-API-Key": process.env.YDC_API_KEY
+          "X-API-Key": apiKey
         }
       }
     );

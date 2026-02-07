@@ -2,101 +2,106 @@
   "brain": {
     "high_level": {
       "onboarding": {
-        "subject": "History of the Roman Empire",
-        "why": "To apply knowledge of the rise and fall to modern geopolitics",
-        "summary": "Wants to learn about the history of the Roman Empire, from its rise to its collapse, in order to apply those lessons to current geopolitics."
+        "subject": "Urban Gardening for Small Spaces",
+        "summary": "Wants to learn how to start a productive garden in a small apartment balcony space."
       },
       "profiling": {
-        "starting_level": "knows basics - skip fundamentals",
-        "depth": "solid working knowledge",
-        "focus_areas": "political history and its relevance to modern geopolitics",
-        "skip_areas": "Military history",
-        "notes": "Learner wants to apply Roman history to modern geopolitics."
+        "starting_level": "complete beginner",
+        "depth": "practical and hands-on",
+        "focus_areas": "container gardening, vertical planters, herbs, easy vegetables",
+        "skip_areas": "large scale farming, landscaping",
+        "notes": "Learner lives in an apartment with a small balcony."
       },
-      "generated_at": "2026-02-06T21:06:18.047Z"
+      "generated_at": "2026-02-07T01:02:15.197Z"
     },
     "course_structure": {
-      "title": "Pax Romana to Political Collapse: Lessons for Modern Geopolitics",
+      "title": "The Balcony Harvest: Practical Urban Gardening for Small Spaces",
       "phases": [
         {
           "phase_number": 1,
-          "title": "The Principate: Centralization and the Illusion of Republic",
-          "description": "Evaluate how Augustus transitioned Rome from a republic to an autocracy while maintaining a façade of democratic institutions.",
+          "title": "Assessing Your Micro-Climate",
+          "description": "You will be able to evaluate your balcony's light, wind, and weight capacity to select the right location for your plants.",
           "lessons": [
             {
               "lesson_number": 1,
-              "title": "The Augustan Settlement: Institutional Hacking",
-              "description": "How Augustus utilized the title 'Princeps' to consolidate absolute power through republican legal frameworks.",
-              "instructional_seed": "Focus on the transition from the Republic to the Principate. Emphasize how Augustus rebranded autocracy as 'restoring the Republic' to prevent elite backlash, and draw parallels to modern 'legalistic autocratization' where democratic institutions are hollowed out from within."
+              "title": "Map Your Sunlight and Shadow Patterns",
+              "description": "Learn how to track sunlight hours to determine if your balcony is full-sun, partial, or shade.",
+              "instructional_seed": "Assume total beginner level. Teach how to use a phone's compass and a simple 'light journal' to map shadows, emphasizing that urban buildings create unique micro-climates."
             },
             {
               "lesson_number": 2,
-              "title": "Soft Power and the Pax Romana",
-              "description": "The role of economic integration, infrastructure, and standardized law in maintaining imperial cohesion.",
-              "instructional_seed": "Teach the non-military drivers of Roman hegemony. Focus on the integration of disparate nations through a common legal code and economic infrastructure (roads and currency), and analyze how this mirrors modern globalization and trade blocs."
+              "title": "Manage Wind and Weight Constraints",
+              "description": "Understand the safety and structural limits of apartment balconies for heavy pots and soil.",
+              "instructional_seed": "Address the safety concerns of 'wind tunnels' in high-rises and explain how to calculate the weight of wet soil to ensure balcony safety."
             }
           ]
         },
         {
           "phase_number": 2,
-          "title": "Citizenship and Identity as Geopolitical Tools",
-          "description": "Analyze the Roman strategy of universal citizenship and its impacts on state loyalty and social stability.",
+          "title": "The Urban Container Kit",
+          "description": "You will be able to select the ideal pots, vertical systems, and specialized soil for productive container gardening.",
           "lessons": [
             {
-              "lesson_number": 1,
-              "title": "The Constitutio Antoniniana: Universal Citizenship",
-              "description": "The granting of citizenship to all freeborn inhabitants in 212 AD and its unintended consequences.",
-              "instructional_seed": "Examine Emperor Caracalla’s decree. Discuss it as a tool for revenue and cultural homogenization versus its role in diluting the unique Roman identity, prompting a discussion on modern immigration, national identity, and social contracts."
+              "lesson_number": 3,
+              "title": "Choose High-Performance Containers",
+              "description": "Compare terracotta, plastic, and smart self-watering pots for small-space efficiency.",
+              "instructional_seed": "Focus on drainage and size requirements for different vegetables. Introduce self-watering planters as a solution for busy apartment dwellers."
             },
             {
-              "lesson_number": 2,
-              "title": "Patronage and Bureaucratic Evolution",
-              "description": "The evolution of the Roman civil service and the shift from personal patronage to state bureaucracy.",
-              "instructional_seed": "Detail how the bureaucracy expanded to manage the vast empire, specifically mentioning Hadrian's reforms. Target the tension between merit-based administration and corrupt patronage, framed as a lesson for modern institutional stability."
+              "lesson_number": 4,
+              "title": "Go Green Vertically",
+              "description": "Utilize wall space and railings with pocket planters and vertical shelving.",
+              "instructional_seed": "Provide practical installation ideas for apartment-friendly vertical systems that don't require permanent drilling into exterior walls."
+            },
+            {
+              "lesson_number": 5,
+              "title": "Mix the Perfect Container Soil",
+              "description": "Learn why garden soil fails in pots and how to create a lightweight, nutrient-rich potting mix.",
+              "instructional_seed": "Deep dive into the 'soilless' mix concept using peat/coir, perlite, and compost. Explain aeration and water retention in the context of limited pot volume."
             }
           ]
         },
         {
           "phase_number": 3,
-          "title": "The Crisis of Governance and Administrative Overstretch",
-          "description": "Identify the internal political fractures and economic failures that created systemic instability.",
+          "title": "High-Yield Plants for Tiny Spaces",
+          "description": "You will be able to select and plant specific herbs and vegetables that thrive in restricted environments.",
           "lessons": [
             {
-              "lesson_number": 1,
-              "title": "The Crisis of the Third Century: Political Volatility",
-              "description": "An era of hyper-plurality in leadership and the breakdown of succession norms.",
-              "instructional_seed": "Explore the 50-year period of civil strife and rapid turnover of 'Barracks Emperors.' Focus on the collapse of political legitimacy and the dangers of a leadership vacuum, using the learner's data literacy to connect this to modern 'failed state' indicators."
+              "lesson_number": 6,
+              "title": "Grow a Culinary Herb Garden",
+              "description": "Start with high-success herbs like basil, mint, and chives that provide immediate utility.",
+              "instructional_seed": "Focus on the 'cut and come again' method. Explain which herbs can share a pot (rosemary/thyme) and which must be solo (mint)."
             },
             {
-              "lesson_number": 2,
-              "title": "Diocletian’s Tetrarchy: Federalism vs. Fragmentation",
-              "description": "The attempt to save the empire by splitting administrative control between East and West.",
-              "instructional_seed": "Explain the transition from Principate to Dominate. Analyze Diocletian’s division of power as a precursor to modern administrative decentralization, and evaluate whether it solved systemic issues or merely accelerated the inevitable split."
+              "lesson_number": 7,
+              "title": "Plant Compact Vegetables and Leafy Greens",
+              "description": "Select 'patio' variety tomatoes, peppers, and salad greens designed for containers.",
+              "instructional_seed": "Explain 'determinate' vs 'indeterminate' varieties. Focus on high-yield, small-footprint crops like radishes and bush-variety beans."
             }
           ]
         },
         {
           "phase_number": 4,
-          "title": "Imperial Sunset: The Mechanics of Collapse",
-          "description": "Deconstruct the multifaceted reasons for the fall of the Western Empire and the survival of the East.",
+          "title": "Maintenance and Trouble-Shooting",
+          "description": "You will be able to keep your garden alive through proper watering, feeding, and pest management.",
           "lessons": [
             {
-              "lesson_number": 1,
-              "title": "The Christianization of the State",
-              "description": "The shift from paganism to Christianity as a state-building and unifying political tool.",
-              "instructional_seed": "Cover Constantine's Edict of Milan and Theodosius I's official declaration. Discuss how state-mandated religion changed the social fabric and political allegiance, examining religion as a geopolitical stabilizer or disruptor."
+              "lesson_number": 8,
+              "title": "Master Apartment Watering and Drainage",
+              "description": "Learn to water efficiently without flooding your neighbors below.",
+              "instructional_seed": "Focus on 'deep watering' and the use of saucers. Explain how to check soil moisture using the finger-test method."
             },
             {
-              "lesson_number": 2,
-              "title": "Internal Rot: Corruption and the Alienation of Elites",
-              "description": "How fiscal crisis and the withdrawal of the wealthy from public service led to state atrophy.",
-              "instructional_seed": "Focus on the 'rust and iron' era. Detail how currency debasement and tax burdens led urban elites to abandon the state, contributing to the failure of the Western Empire—paralleling modern concerns of income inequality and tax flight."
+              "lesson_number": 9,
+              "title": "Identify and Solve Common Urban Pest Issues",
+              "description": "Spot aphids, gnats, and mold early using organic, kitchen-safe methods.",
+              "instructional_seed": "Keep solutions practical and non-toxic for a living space. Teach the use of neem oil and soapy water sprays."
             },
             {
-              "lesson_number": 3,
-              "title": "The 476 AD Post-Mortem",
-              "description": "The final deposition of Romulus Augustulus and the transition into a multipolar Europe.",
-              "instructional_seed": "Briefly mention the deposition by Odoacer but focus on the 'slow fade' rather than a sudden event. Synthesize the political and geopolitical lessons of the entire course to create a framework for analyzing modern superpower stability."
+              "lesson_number": 10,
+              "title": "Feed Your Plants in Containers",
+              "description": "Understand the lifecycle of nutrients in limited soil and when to fertilize.",
+              "instructional_seed": "Teach the basics of liquid N-P-K fertilizers and the timing for feeding 'heavy feeders' like tomatoes vs. light feeders like herbs."
             }
           ]
         }
