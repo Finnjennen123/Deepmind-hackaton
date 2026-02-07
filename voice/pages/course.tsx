@@ -70,12 +70,9 @@ export default function CoursePage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const resetViewRef = useRef<(() => void) | null>(null);
 
-  // If course is not loaded yet, show nothing or a loader
-  if (!course) return null;
-
   // Find selected part and its phase
   const selectedPart: Part | null = (() => {
-    if (!selectedPartId) return null;
+    if (!selectedPartId || !course) return null;
     for (const phase of course.phases) {
       const part = phase.parts.find(p => p.id === selectedPartId);
       if (part) return part;
@@ -84,7 +81,7 @@ export default function CoursePage() {
   })();
 
   const selectedPhase: Phase | null = (() => {
-    if (!selectedPartId) return null;
+    if (!selectedPartId || !course) return null;
     for (const phase of course.phases) {
       if (phase.parts.some(p => p.id === selectedPartId)) return phase;
     }
@@ -321,7 +318,7 @@ export default function CoursePage() {
 
   // Trigger generation if content is missing
   useEffect(() => {
-    if (!selectedPartId) return;
+    if (!selectedPartId || !course) return;
 
     const findPart = () => {
       for (const phase of course.phases) {
@@ -425,6 +422,9 @@ export default function CoursePage() {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     };
   }, [isCondensing, router]);
+
+  // If course is not loaded yet, show nothing
+  if (!course) return null;
 
   return (
     <>
