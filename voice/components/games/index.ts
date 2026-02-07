@@ -1,0 +1,5 @@
+export { default as SortBattle } from './SortBattle'
+export { default as ErrorDetective } from './ErrorDetective'
+export { default as ClaimEvidenceMatch } from './ClaimEvidenceMatch'
+export { default as PredictionBet } from './PredictionBet'
+export { default as TeachTheBot } from './TeachTheBot'

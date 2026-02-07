@@ -20,12 +20,12 @@ interface ToolFunction {
   parameters: Record<string, unknown>;
 }
 
-interface Tool {
+export interface Tool {
   type: 'function';
   function: ToolFunction;
 }
 
-interface ToolCall {
+export interface ToolCall {
   id: string;
   type: 'function';
   function: {
@@ -34,13 +34,13 @@ interface ToolCall {
   };
 }
 
-interface ResponseMessage {
+export interface ResponseMessage {
   role: 'assistant';
   content: string | null;
   tool_calls?: ToolCall[];
 }
 
-interface LLMResponse {
+export interface LLMResponse {
   choices: Array<{
     index: number;
     message: ResponseMessage;

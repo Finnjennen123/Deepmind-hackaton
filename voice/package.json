@@ -24,7 +24,9 @@
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0",
     "tailwindcss": "^4.1.18",
-    "ws": "^8.19.0"
+    "sucrase": "^3.35.0",
+    "ws": "^8.19.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
