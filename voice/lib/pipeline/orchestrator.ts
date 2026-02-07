@@ -16,6 +16,7 @@ import type {
   PipelineEvent,
   CriticResult,
   GenerateGameInput,
+  ArticleContext,
 } from './types'
 
 const MAX_ITERATIONS = 3 // 1 initial + 2 revisions
@@ -127,8 +128,8 @@ function extractJSON(text: string): unknown {
 //   Pipeline steps
 // ═══════════════════════════════════════════
 
-async function generateSpec(profile: DigitalCloneProfile, topic?: string, trace?: PipelineTrace): Promise<GameSpec> {
-  const { system, user } = buildSpecPrompt(profile, topic)
+async function generateSpec(profile: DigitalCloneProfile, topic?: string, articleContext?: ArticleContext, trace?: PipelineTrace): Promise<GameSpec> {
+  const { system, user } = buildSpecPrompt(profile, topic, articleContext)
   const complete = trace?.startStep('spec_generation')
   const response = await llmCall(system, user)
   const spec = extractJSON(response) as GameSpec
@@ -142,8 +143,8 @@ async function generateSpec(profile: DigitalCloneProfile, topic?: string, trace?
   return spec
 }
 
-async function generateConfig(spec: GameSpec, trace?: PipelineTrace, iteration?: number): Promise<{ config: unknown; isCustom: boolean }> {
-  const { system, user } = buildConfigPrompt(spec)
+async function generateConfig(spec: GameSpec, articleContext?: ArticleContext, trace?: PipelineTrace, iteration?: number): Promise<{ config: unknown; isCustom: boolean }> {
+  const { system, user } = buildConfigPrompt(spec, articleContext)
   const complete = trace?.startStep('config_generation', iteration)
   const response = await llmCall(system, user)
 
@@ -230,10 +231,10 @@ async function* generateCustomGame(
   input: GenerateGameInput,
   trace: PipelineTrace,
 ): AsyncGenerator<PipelineEvent> {
-  const { profile, topic } = input
+  const { profile, topic, articleContext } = input
 
   // Step 1: Merged Design+Build — one LLM call
-  const { system, user } = buildCustomGamePrompt(profile, topic)
+  const { system, user } = buildCustomGamePrompt(profile, topic, articleContext)
   const buildComplete = trace.startStep('custom_build')
 
   yield { event: 'spec_ready', data: { title: 'Generating custom game...', concept: topic || 'AI-designed game', gameType: 'custom' } }
@@ -402,7 +403,7 @@ async function attemptCustomFix(
 export async function* generateGame(
   input: GenerateGameInput
 ): AsyncGenerator<PipelineEvent> {
-  const { profile, topic, preferredGameType, forceCustom } = input
+  const { profile, topic, preferredGameType, forceCustom, articleContext } = input
   const trace = new PipelineTrace({ profileName: profile.name, topic, forceCustom })
 
   // Fast path: custom game pipeline (1-2 LLM calls instead of 3-7)
@@ -422,7 +423,7 @@ export async function* generateGame(
   try {
     // Step 1: Generate game spec
     try {
-      spec = await generateSpec(profile, topic, trace)
+      spec = await generateSpec(profile, topic, articleContext, trace)
       await trace.flush()
 
       // If user preferred a specific template, override
@@ -452,7 +453,7 @@ export async function* generateGame(
       try {
         // Generate or revise config
         if (iteration === 1) {
-          const result = await generateConfig(spec, trace, iteration)
+          const result = await generateConfig(spec, articleContext, trace, iteration)
           config = result.config
           isCustom = result.isCustom
           await trace.flush()

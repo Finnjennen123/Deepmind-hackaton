@@ -262,6 +262,23 @@ export interface DigitalCloneProfile {
 }
 
 // ═══════════════════════════════════════════
+//   Article Context (from course lessons)
+// ═══════════════════════════════════════════
+
+export interface SearchResult {
+  title: string
+  url: string
+  snippet: string
+}
+
+export interface ArticleContext {
+  title: string
+  content: string
+  masteryCriteria: string
+  searchResults?: SearchResult[]
+}
+
+// ═══════════════════════════════════════════
 //   Pipeline Input
 // ═══════════════════════════════════════════
 
@@ -270,4 +287,5 @@ export interface GenerateGameInput {
   topic?: string            // optional override — otherwise inferred from profile gaps
   preferredGameType?: RendererType  // optional hint (only when mode is 'template')
   forceCustom?: boolean     // true = always generate a novel game type via code generation
+  articleContext?: ArticleContext  // lesson content the student just read
 }

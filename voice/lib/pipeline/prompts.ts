@@ -1,18 +1,45 @@
 // Prompt templates for the game generation pipeline
 // Four prompts: Spec (A), Build (B), Critic (C), Revision (D)
 
-import type { DigitalCloneProfile, GameSpec, RendererType, CriticResult } from './types'
+import type { DigitalCloneProfile, GameSpec, RendererType, CriticResult, ArticleContext } from './types'
 import { getRendererCatalog, getRendererSchema } from './renderer-schemas'
+
+function buildArticleSection(articleContext?: ArticleContext): string {
+  if (!articleContext) return ''
+
+  let section = `\n\n## Lesson Content the Student Just Read
+Title: ${articleContext.title}
+Mastery Criteria: ${articleContext.masteryCriteria}
+
+Article (excerpt):
+${articleContext.content.slice(0, 3000)}`
+
+  if (articleContext.searchResults && articleContext.searchResults.length > 0) {
+    section += `\n\n## Supplementary Web Sources
+${articleContext.searchResults.map(r => `- ${r.title}: ${r.snippet}`).join('\n')}`
+  }
+
+  section += `\n\n## IMPORTANT
+- The game MUST test understanding of THIS specific article content
+- Target the mastery criteria — verify the student meets them
+- Do not test tangential knowledge outside the article`
+
+  return section
+}
 
 // ═══════════════════════════════════════════
 //   Prompt A: Game Spec Generator
 // ═══════════════════════════════════════════
 
-export function buildSpecPrompt(profile: DigitalCloneProfile, topic?: string): {
+export function buildSpecPrompt(profile: DigitalCloneProfile, topic?: string, articleContext?: ArticleContext): {
   system: string
   user: string
 } {
   const catalog = getRendererCatalog()
+
+  const articleSystemNote = articleContext
+    ? '\n5. **Article alignment**: If lesson article content is provided, design the game to test the specific concepts from that article.'
+    : ''
 
   const system = `You are an expert educational game designer. Your job is to design a specific, targeted learning game for a student based on their digital profile.
 
@@ -20,7 +47,7 @@ export function buildSpecPrompt(profile: DigitalCloneProfile, topic?: string): {
 1. **Frontier testing**: Target the edge of what the student knows. Don't test what they've mastered; probe where their understanding breaks down.
 2. **Signal density**: Every interaction should reveal something about the student's understanding. No filler rounds.
 3. **Engagement through agency**: Give the student meaningful choices, not just recall questions.
-4. **Misconception targeting**: If the profile lists specific misconceptions, design the game to surface and challenge them.
+4. **Misconception targeting**: If the profile lists specific misconceptions, design the game to surface and challenge them.${articleSystemNote}
 
 ## Available Game Templates
 
@@ -152,7 +179,7 @@ Engagement triggers: ${profile.engagementTriggers.join(', ')}
 
 Current module: ${profile.currentModule}
 Completed modules: ${profile.modulesCompleted.join(', ')}
-Upcoming topics: ${profile.upcomingTopics.join(', ')}${performanceSection}${topicInstruction}`
+Upcoming topics: ${profile.upcomingTopics.join(', ')}${performanceSection}${topicInstruction}${buildArticleSection(articleContext)}`
 
   return { system, user }
 }
@@ -161,12 +188,12 @@ Upcoming topics: ${profile.upcomingTopics.join(', ')}${performanceSection}${topi
 //   Prompt B: Config Builder
 // ═══════════════════════════════════════════
 
-export function buildConfigPrompt(spec: GameSpec): {
+export function buildConfigPrompt(spec: GameSpec, articleContext?: ArticleContext): {
   system: string
   user: string
 } {
   if (spec.gameType === 'custom') {
-    return buildCustomCodePrompt(spec)
+    return buildCustomCodePrompt(spec, articleContext)
   }
 
   const schema = getRendererSchema(spec.gameType as RendererType)
@@ -185,6 +212,8 @@ export function buildConfigPrompt(spec: GameSpec): {
 
 ${schema}`
 
+  const articleSection = buildArticleSection(articleContext)
+
   const user = `Build the config for this game:
 
 Title: ${spec.title}
@@ -194,12 +223,12 @@ Pedagogical goal: ${spec.pedagogicalGoal}
 Difficulty: ${spec.difficulty}/5
 
 Rounds:
-${spec.rounds.map(r => `- Round ${r.roundNumber}: ${r.focus}\n  Content seed: ${r.contentSeed}`).join('\n')}`
+${spec.rounds.map(r => `- Round ${r.roundNumber}: ${r.focus}\n  Content seed: ${r.contentSeed}`).join('\n')}${articleSection}`
 
   return { system, user }
 }
 
-function buildCustomCodePrompt(spec: GameSpec): {
+function buildCustomCodePrompt(spec: GameSpec, articleContext?: ArticleContext): {
   system: string
   user: string
 } {
@@ -273,7 +302,7 @@ ${spec.customRendererDescription}
 Round content to hardcode into the component:
 ${spec.rounds.map(r => `- Round ${r.roundNumber}: ${r.focus}\n  Content: ${r.contentSeed}`).join('\n')}
 
-IMPORTANT: Hardcode the round content directly into the component's state or constants. The \`rounds\` prop may be empty — do not depend on it for game data.`
+IMPORTANT: Hardcode the round content directly into the component's state or constants. The \`rounds\` prop may be empty — do not depend on it for game data.${buildArticleSection(articleContext)}`
 
   return { system, user }
 }
@@ -282,7 +311,7 @@ IMPORTANT: Hardcode the round content directly into the component's state or con
 //   Custom Game: Merged Design + Build Prompt
 // ═══════════════════════════════════════════
 
-export function buildCustomGamePrompt(profile: DigitalCloneProfile, topic?: string): {
+export function buildCustomGamePrompt(profile: DigitalCloneProfile, topic?: string, articleContext?: ArticleContext): {
   system: string
   user: string
 } {
@@ -650,7 +679,7 @@ Upcoming topics: ${profile.upcomingTopics.join(', ')}${performanceSection}${topi
 2. Hardcode 3-5 rounds/levels of content directly in the component
 3. Content should target the student's known gaps and misconceptions
 4. Include scoring, feedback, and round progression
-5. Output ONLY the React component code — no explanation`
+5. Output ONLY the React component code — no explanation${buildArticleSection(articleContext)}`
 
   return { system, user }
 }

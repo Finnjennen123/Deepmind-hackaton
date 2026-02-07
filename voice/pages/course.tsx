@@ -7,6 +7,7 @@ import CourseHeader from '../components/course/CourseHeader';
 import PartDetailPanel from '../components/course/PartDetailPanel';
 import { MOCK_COURSE } from '../lib/mock-course';
 import type { Course, Part, Phase, PartStatus } from '../lib/course-types';
+import type { RendererConfig } from '../lib/pipeline/types';
 
 // Dynamic import for React Flow (needs window)
 const CourseCanvas = dynamic(
@@ -54,6 +55,15 @@ export default function CoursePage() {
     }
   }, [course]);
 
+  // ── Game generation state ──
+  const [gameResult, setGameResult] = useState<{
+    partId: string; config: RendererConfig; customCode?: string;
+  } | null>(null);
+  const [gameLoading, setGameLoading] = useState(false);
+  const [gameProgress, setGameProgress] = useState('');
+  const [gameError, setGameError] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
   // ── Condensation animation state ──
   const [isCondensing, setIsCondensing] = useState(false);
   const [showCard, setShowCard] = useState(false);
@@ -86,7 +96,12 @@ export default function CoursePage() {
   }, []);
 
   const handleClosePanel = useCallback(() => {
+    abortRef.current?.abort();
     setSelectedPartId(null);
+    setGameResult(null);
+    setGameLoading(false);
+    setGameProgress('');
+    setGameError(false);
   }, []);
 
   // Helper: update a part's status and unlock next
@@ -129,16 +144,98 @@ export default function CoursePage() {
     });
   }, []);
 
+  // ── Background game generation via SSE ──
+  const startGameGeneration = useCallback((partId: string, part: Part, signal: AbortSignal) => {
+    setGameLoading(true);
+    setGameProgress('Starting game generation...');
+    setGameError(false);
+
+    fetch('/api/generate-game', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: part.title,
+        articleTitle: part.title,
+        articleContent: part.content,
+        masteryCriteria: part.mastery_criteria,
+      }),
+      signal,
+    })
+      .then(async (res) => {
+        if (!res.body) throw new Error('No response body');
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const dataStr = line.replace(/^data: /, '');
+            if (!dataStr) continue;
+            try {
+              const event = JSON.parse(dataStr);
+              if (event.event === 'spec_ready') {
+                setGameProgress(`Designing: ${event.data.title}`);
+              } else if (event.event === 'config_draft') {
+                setGameProgress(`Building game (iteration ${event.data.iteration})...`);
+              } else if (event.event === 'critic_result') {
+                setGameProgress(`Evaluating quality (score: ${event.data.score}/12)...`);
+              } else if (event.event === 'revision') {
+                setGameProgress('Revising...');
+              } else if (event.event === 'complete') {
+                setGameResult({
+                  partId,
+                  config: event.data.config,
+                  customCode: event.data.customCode,
+                });
+                setGameLoading(false);
+                setGameProgress('');
+                return;
+              } else if (event.event === 'error') {
+                setGameError(true);
+                setGameLoading(false);
+                setGameProgress('');
+                return;
+              }
+            } catch {
+              // ignore malformed SSE lines
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('[game-gen] SSE error:', err);
+        setGameError(true);
+        setGameLoading(false);
+        setGameProgress('');
+      });
+  }, []);
+
   const handleStartLesson = useCallback(() => {
-    if (selectedPartId) {
-      updatePartStatus(selectedPartId, 'in_progress');
-    }
-  }, [selectedPartId, updatePartStatus]);
+    if (!selectedPartId || !selectedPart) return;
+    updatePartStatus(selectedPartId, 'in_progress');
+
+    // Skip if we already have a game for this part
+    if (gameResult?.partId === selectedPartId) return;
+
+    // Abort previous SSE if any
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    startGameGeneration(selectedPartId, selectedPart, controller.signal);
+  }, [selectedPartId, selectedPart, updatePartStatus, gameResult, startGameGeneration]);
 
   const handleMarkMastered = useCallback(() => {
     if (selectedPartId) {
       updatePartStatus(selectedPartId, 'mastered');
-      setSelectedPartId(null);
+      // Panel stays open — transitions to game/loading view
     }
   }, [selectedPartId, updatePartStatus]);
 
@@ -372,6 +469,10 @@ export default function CoursePage() {
             onClose={handleClosePanel}
             onStartLesson={handleStartLesson}
             onMarkMastered={handleMarkMastered}
+            gameResult={gameResult?.partId === selectedPartId ? gameResult : undefined}
+            gameLoading={gameLoading}
+            gameProgress={gameProgress}
+            gameError={gameError}
           />
         </motion.div>
 
@@ -489,6 +590,11 @@ export default function CoursePage() {
           to {
             stroke-dashoffset: -10;
           }
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         .lesson-content {
