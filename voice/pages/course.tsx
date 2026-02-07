@@ -74,12 +74,9 @@ export default function CoursePage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const resetViewRef = useRef<(() => void) | null>(null);
 
-<<<<<<< HEAD
-=======
   // If course is not loaded yet, show nothing or a loader
   // Moved check to end of component to avoid hook count mismatch
-  
->>>>>>> feb9802 (Fix course generation, onboarding flow, and demo mode)
+
   // Find selected part and its phase
   const selectedPart: Part | null = (() => {
     if (!selectedPartId || !course) return null;
